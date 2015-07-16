@@ -138,7 +138,13 @@ var geoQuery = function(queryParams, callback) {
 	}
 	//Mysql query
 	if (credentials.type === 'mysql') {
-		var query = 'SELECT *, AsWKT(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName;
+		var query = 'SELECT *, AsWKT(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName;		
+		if(queryParams.dateColumn != undefined && queryParams.dateRange != undefined){ 
+			query += ' WHERE ' + queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;			
+		}			
+		if(queryParams.limit != undefined){
+			query += ' LIMIT ' + queryParams.limit;
+		}		
 		var queryCon = connection.query(query);
 		queryCon
 			.on('result', function(row){
@@ -185,8 +191,13 @@ var geoQuery = function(queryParams, callback) {
 			}
 			console.log('connected');
 			var query = 'SELECT *, ST_AsText(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName;
-			console.log("PostGIS query");
-			//console.log(query);
+			if(queryParams.dateColumn != undefined && queryParams.dateRange != undefined){ 
+				query += ' WHERE ' + queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;			
+			}			
+			if(queryParams.limit != undefined){
+				query += ' LIMIT ' + queryParams.limit;
+			}
+			
 			connection.query(query, function(err, result) {
 				if (err) {
 					console.log('error')
@@ -237,7 +248,7 @@ var geoQuery = function(queryParams, callback) {
  * @param {Object} geometryColumn
  * @param {Object} tableName
  */
-var geoQueryLimited = function(queryParams, callback) {
+/*var geoQueryLimited = function(queryParams, callback) {
 	var geojson = {
 			"type" : "FeatureCollection",
 			"features" : []
@@ -336,25 +347,185 @@ var geoQueryLimited = function(queryParams, callback) {
 
 			/*connection.on('end', function(){
 				client.end();
-			});*/
+			});*_/
 		});
 		
 	} else {
 		throw "there is no valid db type. [type] = " + credentials.type;
 	}
 }
+*/
+
+/**
+ * This method is applicable only to linestrings. 
+ * Creates a geojson with segments of line. 
+ * Additionally the distance (distance) and velocity (segmentVelocity) of each segment are estimated.  
+ * @param {Object} geometryColumn
+ * @param {Object} tableName
+ */
+var getLineSegments = function(queryParams, callback){
+
+	var geojson = {
+			"type" : "FeatureCollection",
+			"features" : []
+		};
+	var columns = [];
+	if(queryParams.properties.constructor === Array )
+	{
+		columns = queryParams.properties;
+	}
+	//Mysql query
+	if (credentials.type === 'mysql') {
+		console.log("getLineSegments NOT IMPLEMENTED for mysql db");
+		
+		/*var query = 'SELECT *, AsWKT(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName;
+		var queryCon = connection.query(query);
+		queryCon
+			.on('result', function(row){
+				var geometry = wkt.parse(row.wkt);
+				var properties = {};
+				for(i in columns)
+				{
+					var col = columns[i];
+					properties[col] = row[col];
+				}
+				var feature = {
+					"type" : "Feature",
+					"geometry" : geometry,
+					"properties" : properties
+				};
+				geojson.features.push(feature);
+			})
+			.on('fields', function(fields){
+				if(queryParams.properties == 'all')
+				{
+					for (i in fields) {
+						var name = fields[i].name;
+						if (name != queryParams.geometry && name != 'wkt')
+							columns.push(fields[i].name);
+					}
+				}
+				//console.log(columns);
+			})
+			.on('end', function(){
+				//console.log('se acabo...');
+				//console.log(geojson);
+				callback(geojson);
+			});*/
+			
+	} else if(credentials.type === 'postgis'){
+
+		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
+		console.log("Query to PostGis");
+		//console.log(connectString);
+		connection = new pg.Client(connectString);
+		connection.connect(function(err) {
+			if (err) {
+				return console.error('could not connect to postgres', err);
+			}
+			console.log('connected');
+			
+			//var query = 'SELECT *, ST_AsText(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName + ' LIMIT ' + queryParams.limit;
+			var query = 'SELECT *, ST_AsText(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName;			
+			
+			if(queryParams.dateColumn != undefined && queryParams.dateRange != undefined){ 
+				query += ' WHERE ' + queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;			
+			}
+			
+			if(queryParams.limit != undefined){				
+				query += ' LIMIT ' + queryParams.limit;
+			}
+			
+			
+			console.log("PostGIS query");
+			//console.log(query);
+			console.log("query: " + query);
+			connection.query(query, function(err, result) {
+				if (err) {
+					console.log('error')
+					console.log(err.stack);
+				}
+
+				if(queryParams.properties == 'all')
+				{
+					for(field in result.fields){
+						var name = result.fields[field].name;
+						if (name != queryParams.geometry && name != 'wkt')
+							columns.push(result.fields[field].name);
+					}
+				}
+				console.log("PostGIS query executed! " + result.rows.length);			
+
+				var totalDistance = 0;
+				for (each in result.rows) {
+										
+					var Terraformer = require('terraformer');
+					var WKT = require('terraformer-wkt-parser');
+								
+					var geometry = WKT.parse(result.rows[each].wkt);
+					
+					var numOfSegments = geometry.coordinates.length -1 ;
+					//console.log("num of segments "+numOfSegments);
+					for(var coordinate=0; coordinate < numOfSegments; coordinate++){											
+						var properties = {};
+						for(i in columns){
+							var col = columns[i];
+							properties[col] = result.rows[each][col];
+						}						
+						var segmentDistance = getDistance(geometry.coordinates[coordinate],geometry.coordinates[coordinate+1]);
+						var segment = new Terraformer.LineString([ geometry.coordinates[coordinate],geometry.coordinates[coordinate+1] ]);
+						properties["segmentLength"] = segmentDistance;
+						totalDistance+=segmentDistance;
+						var feature = {
+							"type" : "Feature",
+							"geometry" : segment,
+							"properties" : properties
+						};
+						geojson.features.push(feature);		
+					}
+				}				
+				callback(geojson);
+			});			
+			//connection.end();			
+		});
+		
+	} else {
+		throw "there is no valid db type. [type] = " + credentials.type;
+	}
+
+
+}
+
+/**
+ * Calculates the distance of two points in meters. 
+ * The point must be in lattitude and longitude.
+ * @param {Object} latlng1 : point 1
+ * @param {Object} latlng2 : point 2
+ * @return the distance in meters
+ */ 
+var getDistance = function (latlng1, latlng2) {
+	var radius = 6378137;
+	var rad = Math.PI / 180;
+	var lat1 = latlng1[0] * rad;
+	var lat2 = latlng2[0] * rad;
+	var a = Math.sin(lat1) * Math.sin(lat2) +
+	Math.cos(lat1) * Math.cos(lat2) * Math.cos((latlng2[1] - latlng1[1]) * rad);
+	return radius * Math.acos(Math.min(a, 1));
+}
 
 /*var testFunction = function(){
 	
 }*/
 
-module.exports = {
-	
+module.exports = {	
 	setCredentials : setCredentials,
 	logCredentials : logCredentials,
 	connectToDb : connectToDb,
 	//endConnection : endConnection,
 	geoQuery : geoQuery,
-	geoQueryLimited : geoQueryLimited
-	//testFunction : testFunction
+	geoQueryLimited : geoQueryLimited,
+	getLineSegments : getLineSegments,
+	getDistance : getDistance
+	//testFunction : testFunction	
 }
+
