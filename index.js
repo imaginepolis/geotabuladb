@@ -232,7 +232,7 @@ var geoQuery = function(queryParams, callback) {
 		}			
 		if(queryParams.limit != undefined){
 			query += ' LIMIT ' + queryParams.limit;
-		}		
+		}
 		var queryCon = connection.query(query);
 		queryCon
 			.on('result', function(row){
@@ -269,15 +269,14 @@ var geoQuery = function(queryParams, callback) {
 	} else if(credentials.type === 'postgis'){
 
 		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
-		console.log("Query to PostGis");
+		//console.log("Query to PostGis");
 		//console.log(connectString);
 		connection = new pg.Client(connectString);
 		connection.connect(function(err) {
 			if (err) {
 				return console.error('could not connect to postgres', err);
-
 			}
-			console.log('connected');
+			//console.log('connected');
 			var query = 'SELECT *, ST_AsText(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName;
 			if(queryParams.dateColumn != undefined && queryParams.dateRange != undefined){ 
 				query += ' WHERE ' + queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;			
@@ -285,11 +284,11 @@ var geoQuery = function(queryParams, callback) {
 			if(queryParams.limit != undefined){
 				query += ' LIMIT ' + queryParams.limit;
 			}
-			
+			//console.log(query);
 			connection.query(query, function(err, result) {
 				if (err) {
 					console.log('error')
-					//console.log(err.stack);
+					console.log(err.stack);
 				}
 
 				if(queryParams.properties == 'all')
@@ -1094,8 +1093,292 @@ var getRoadVelocityFromRoutes = function(queryParams, callback){
 
 }
 
+/**
+ * This method join two tables in a database.
+ * The reference Table
+ * The target table is the source of resulting elements 
+ * Output: Set of objetcs in the target Layer.  
+ * @param {Object} referenceTableName
+ * @param {Object} referenceColumn
+ * @param {Object} referenceId
+ * @param {Object} referenceIdColumn
+ * @param {Object} targetTableName
+ * @param {Object} targetColumn 
+ */ 
+var intersectLayers = function(queryParams, callback){	
+	var geojson = {
+		"type" : "FeatureCollection",
+		"features" : []
+	};	
+	var columns = [];	
+	
+	if(credentials.type === 'postgis'){
+		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
+		//console.log("Query to PostGis");
+		var reference ={};
+		var referenceId;		
+		var numOfStartingRoutes=0;
+		var properties={};
+		
+		connection4reference = new pg.Client(connectString);
+		connection4target = new pg.Client(connectString);
+		
+		connection4reference.connect(function(err) {
+			if (err) {
+				return console.error('could not connect to postgres ', err);
+			}
+			
+			var query4reference = 'SELECT *, ST_AsText('+queryParams.referenceColumn+') AS wkt FROM '+queryParams.referenceTableName+' WHERE '+ queryParams.referenceIdColumn + ' = ' + queryParams.referenceId + ';';
+						
+			//console.log(query4reference);//TODO comment
+  			connection4reference.query(query4reference, function(err, result) {
+				if (err) {
+					console.log('error')
+					console.log(err.stack);
+				}
+				
+				for (each in result.rows) {				
+					var WKT = require('terraformer-wkt-parser');							
+					reference = WKT.parse(result.rows[each].wkt);					
+					referenceId = result.rows[each][queryParams.referenceId];							
+				}
+			
+			connection4target.connect(function(err) {
+			if (err) {
+				return console.error('could not connect to postgres', err);
+			}
+			
+			var query4target = 'SELECT DISTINCT ';
+			
+			if(queryParams.properties != undefined && queryParams.properties.constructor === Array )
+			{					
+				columns = queryParams.properties;
+				for (property in queryParams.properties){
+					query4target += queryParams.targetTableName+'.'+queryParams.properties[property]+', ';
+				}				
+			}else{
+				query4target += '*';
+			}
+			
+			query4target += 'ST_AsText('+queryParams.targetTableName+'.'+queryParams.targetColumn+') AS wkt FROM '+queryParams.referenceTableName+', '+queryParams.targetTableName;
+  			
+  			if(queryParams.dateColumn != undefined && queryParams.dateRange != undefined){ 
+				query4target += ' WHERE ' + queryParams.targetTableName+'.'+queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;			
+			}			
+			 			
+			query4target += ' AND '+queryParams.referenceTableName+'.'+queryParams.referenceIdColumn+' = '+queryParams.referenceId +' AND (ST_Crosses('+queryParams.targetTableName+'.'+queryParams.targetColumn+', '+queryParams.referenceTableName+'.'+queryParams.referenceColumn +'))';
+			
+			if(queryParams.limit != undefined){
+				query4target += ' LIMIT ' + queryParams.limit;
+			}
+			
+			//console.log("PostGIS query");
+			//console.log(query4target);
+			connection4target.query(query4target, function(err, result) {
+				if (err) {
+					console.log('error')
+					console.log(err.stack);
+				}
+				
+				for (each in result.rows) {
+					var Terraformer = require('terraformer');
+					var WKT = require('terraformer-wkt-parser');								
+					var route = WKT.parse(result.rows[each].wkt);
+					
+					for(i in columns){
+						var col = columns[i];
+						properties[col] = result.rows[each][col];
+					}					
+					
+					var feature = {
+						"type" : "Feature",
+						"geometry" : route,
+						"properties" : properties
+					};
+					geojson.features.push(feature);				
+				
+				}		
+				callback(geojson);		
+				//callback(numOfStartingRoutes);
+			});			
+			//connection.end();			
+		});
+		
+		
+				
+				
+				
+				
+				
+				//callback(zone);
+			});			
+		});
+
+		
+	
+		
+	} else {
+		throw "there is no valid db type. [type] = " + credentials.type;
+	}
+
+}
 
 
+
+/**
+ * This method join two tables in a database, at least one of the tables has to have polygons.
+ * The idea is that one table has the zone and the otherone the routes (origin point and destination point) 
+ * Output: Creates a json with Origin Destination Matrix. 
+ * Additionally the number of starting and ending routes of are estimated.  
+ * @param {Object} zonesTableName
+ * @param {Object} zonesColumn
+ * @param {Object} zonesId
+ * @param {Object} routesTableName
+ * @param {Object} routesColumn 
+ */ 
+var generateOD_MAtrix = function(queryParams, callback){
+	console.log("executing getOD_MAtrix ");
+	
+	var geojson = {
+		"type" : "FeatureCollection",
+		"features" : []
+	};
+	
+	var columns = [];
+	if(queryParams.properties != undefined && queryParams.properties.constructor === Array )
+	{
+		columns = queryParams.properties;
+	}
+	
+	if(credentials.type === 'postgis'){
+
+		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
+		console.log("Query to PostGis");
+
+		var zone ={};
+		var zoneId;
+		var columns = [];
+		var numOfStartingRoutes=0;
+		var properties={};
+		connection4zone = new pg.Client(connectString);
+		connection4routes = new pg.Client(connectString);
+		connection4zone.connect(function(err) {
+			if (err) {
+				return console.error('could not connect to postgres ', err);
+			}
+			
+			console.log('connected to get the zone');			
+			
+			//var query4zone = 'SELECT *, ST_AsText('+queryParams.roadColumn+') AS wkt, ST_AsText( ST_Buffer('+queryParams.roadColumn+', '+queryParams.buferSize+') ) as wkt_buffer FROM '+queryParams.roadTable+ ' WHERE '+queryParams.roadIdColumn+'='+queryParams.roadId+';';
+			//var query4zone = 'SELECT '+queryParams.zonesColumn+ ', ST_AsText('+queryParams.zonesColumn+') AS wkt FROM '+queryParams.zonesTableName+';';
+			var query4zone = 'SELECT *, ST_AsText('+queryParams.zonesColumn+') AS wkt FROM '+queryParams.zonesTableName;
+			if(queryParams.limit != undefined){	
+				console.log(" QUERRY LIMITED ");
+				query4zone += ' LIMIT ' + queryParams.limit;
+			}			
+			console.log(query4zone);
+  			connection4zone.query(query4zone, function(err, result) {
+				if (err) {
+					console.log('error')
+					console.log(err.stack);
+				}
+				var ZoNeId = queryParams.zonesId;
+				console.log('ZoNeId: '+ZoNeId);
+				for (each in result.rows) {
+					//var Terraformer = require('terraformer');
+					var WKT = require('terraformer-wkt-parser');							
+					zone = WKT.parse(result.rows[each].wkt);
+					var zoneId2 = result.rows[each].gid;
+					console.log('zoneId2: '+zoneId2);
+					zoneId = result.rows[each][queryParams.zonesId];
+					console.log('zoneId: '+zoneId);					
+				}
+			
+			connection4routes.connect(function(err) {
+			if (err) {
+				return console.error('could not connect to postgres', err);
+			}
+			
+			var query = 'SELECT DISTINCT ';
+			if(queryParams.routesProperties != undefined){	
+				columns = queryParams.routesProperties;
+				for (property in queryParams.routesProperties){
+					query += queryParams.routesTableName+'.'+queryParams.routesProperties[property]+', ';
+				}				
+			}
+			query += 'ST_AsText('+queryParams.routesTableName+'.'+queryParams.routesColumn+') AS wkt FROM '+queryParams.zonesTableName+', '+queryParams.routesTableName;
+  			console.log('zoneId: '+zoneId);
+  			if(queryParams.dateColumn != undefined && queryParams.dateRange != undefined){ 
+				query += ' WHERE ' + queryParams.routesTableName+'.'+queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;			
+			}			
+			//' WHERE (routes.time_stamp BETWEEN '2004-01-07 07:00:00' AND '2004-01-07 07:59:59') 
+			//query += ' AND '+queryParams.roadTable+'.'+queryParams.roadIdColumn+' = '+queryParams.roadId+' AND (ST_Crosses('+queryParams.routesTable+'.'+queryParams.routesColumn+', '+queryParams.roadTable+'.'+queryParams.roadColumn+'))';
+			query += ' AND '+queryParams.zonesTableName+'.'+queryParams.zonesId+' = '+zoneId +' AND (ST_Crosses('+queryParams.routesTableName+'.'+queryParams.routesColumn+', '+queryParams.zonesTableName+'.'+queryParams.zonesColumn +'))';
+			
+			/*if(queryParams.limit != undefined){	
+				query += ' LIMIT ' + queryParams.limit;
+			}*/
+			
+			console.log("PostGIS query");
+			console.log(query);
+			connection4routes.query(query, function(err, result) {
+				if (err) {
+					console.log('error')
+					console.log(err.stack);
+				}
+		
+				
+				for (each in result.rows) {
+					var Terraformer = require('terraformer');
+					var WKT = require('terraformer-wkt-parser');								
+					var route = WKT.parse(result.rows[each].wkt);
+					//console.log(route);
+					/*Zone = new Terraformer.Primitive(zone);
+					Route = new Terraformer.Primitive(route);
+					var initialPoint = new Terraformer.Point(route.coordinates[0]);
+					
+					if(Zone.contains(initalPoint)){
+						numOfStartingRoutes++;
+					}*/
+					
+					for(i in columns){
+						var col = columns[i];
+						properties[col] = result.rows[each][col];
+					}
+					
+					
+					var feature = {
+						"type" : "Feature",
+						"geometry" : route,
+						"properties" : properties
+					};
+					geojson.features.push(feature);				
+				
+				}		
+				callback(geojson);		
+				//callback(numOfStartingRoutes);
+			});			
+			//connection.end();			
+		});
+		
+		
+				
+				
+				
+				
+				
+				//callback(zone);
+			});			
+		});
+
+		
+	
+		
+	} else {
+		throw "there is no valid db type. [type] = " + credentials.type;
+	}
+
+}
 
 
 
@@ -1198,13 +1481,15 @@ module.exports = {
 	connectToDb : connectToDb,
 	//endConnection : endConnection,
 	query : query,
-	geoQuery : geoQuery,	
+	geoQuery : geoQuery,
+	intersectLayers : intersectLayers,
 	//geoQueryLimited : geoQueryLimited,
 	getLineSegments : getLineSegments,
 	getIntersectingSegments : getIntersectingSegments,
 	intersectRoadAndRoutes : intersectRoadAndRoutes,	
 	intersectRoadAndSegments : intersectRoadAndSegments,
 	getRoadVelocityFromRoutes : getRoadVelocityFromRoutes,	
+	generateOD_MAtrix : generateOD_MAtrix,	
 	getBuffer : getBuffer,
 	getDistance : getDistance,
 	getAngle: getAngle
