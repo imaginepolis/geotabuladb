@@ -204,7 +204,7 @@ module.exports = {
 	setCredentials : setCredentials,
 	logCredentials : logCredentials,
 	connectToDb : connectToDb,
-	endConnection : endConnection,
+	//endConnection : endConnection,
 	geoQuery : geoQuery,
 	testFunction : testFunction
 }

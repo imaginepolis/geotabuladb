@@ -6,6 +6,10 @@
   "scripts": {
     "test": "make test"
   },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/tabulaco/geotabuladb.git"
+  },
   "author": "Juan Camilo Ibarra",
   "license": "BSD",
   "devDependencies": {
