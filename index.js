@@ -121,6 +121,7 @@ var endConnection = function(){
  * 		<li> <b>geometry: </b>  column name that contains the geometry
 		<li> <b>tableName: </b> table from the database
 		<li> <b>properties: </b> How are the properties going to be created (all, none, array with properties' names)
+		</ul>
  * @param {Object} callback function
  */
 var geoQuery = function(queryParams, callback) {
