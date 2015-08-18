@@ -114,6 +114,16 @@ var endConnection = function(){
 	}
 }
 
+/**
+ * Returns an object with the attributes
+ * @param {Object} object with query parameters:<br>
+ * <ul>
+ * 		<li> <b>limit: </b>  How many rows are going to be inside query
+		<li> <b>where: </b> 
+		<li> <b>properties: </b> How are the properties going to be created (all, array with properties' names)
+		</ul>
+ * @param {Object} callback function
+ */
 var query = function(queryParams, callback) {
 	
 	var columns = [];
@@ -165,7 +175,7 @@ var query = function(queryParams, callback) {
 				query += ' LIMIT ' + queryParams.limit;
 			}
 			query += ';';			
-			//console.log(query);
+			console.log(query);
 			
 			connection.query(query, function(err, result) {
 				if (err) {
@@ -204,8 +214,13 @@ var query = function(queryParams, callback) {
 
 /**
  * Creates a geojson 
- * @param {Object} geometryColumn
- * @param {Object} tableName
+ * @param {Object} object with query parameters:<br>
+ * <ul>
+ * 		<li> <b>geometry: </b>  column name that contains the geometry
+		<li> <b>tableName: </b> table from the database
+		<li> <b>properties: </b> How are the properties going to be created (all, none, array with properties' names)
+		</ul>
+ * @param {Object} callback function
  */
 var geoQuery = function(queryParams, callback) {
 	var geojson = {
@@ -277,7 +292,7 @@ var geoQuery = function(queryParams, callback) {
 			if(queryParams.limit != undefined){
 				query += ' LIMIT ' + queryParams.limit;
 			}
-			//console.log(query);
+			console.log(query);
 			connection.query(query, function(err, result) {
 				if (err) {
 					console.log('error')
