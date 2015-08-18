@@ -116,8 +116,12 @@ var endConnection = function(){
 
 /**
  * Creates a geojson 
- * @param {Object} geometryColumn
- * @param {Object} tableName
+ * @param {Object} object with query parameters:<br>
+ * <ul>
+ * 		<li> <b>geometry: </b>  column name that contains the geometry
+		<li> <b>tableName: </b> table from the database
+		<li> <b>properties: </b> How are the properties going to be created (all, none, array with properties' names)
+ * @param {Object} callback function
  */
 var geoQuery = function(queryParams, callback) {
 	var geojson = {
@@ -208,3 +212,4 @@ module.exports = {
 	geoQuery : geoQuery,
 	testFunction : testFunction
 }
+
