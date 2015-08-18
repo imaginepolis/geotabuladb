@@ -114,15 +114,98 @@ var endConnection = function(){
 	}
 }
 
+var query = function(queryParams, callback) {
+	
+	var columns = [];
+	var resultRows = [];
+	if(queryParams.properties != undefined )
+	{
+		if(queryParams.properties.constructor === Array){
+			for (prop in queryParams.properties){
+				columns.push(queryParams.properties[prop]);	
+			}
+		}else if(queryParams.properties == 'all' ){
+			columns.push('*');
+		}
+		
+	} else{
+		columns.push('*');
+	}
+	
+	//Mysql query
+	if (credentials.type === 'mysql') {
+		//TODO implemetn this fucntion for mysql db
+		console.error("Method NOT IMPLEMENTED for MySql DB");
+	} else if(credentials.type === 'postgis'){
+
+		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
+		//console.log("Simple query to PostGis");
+		
+		connection = new pg.Client(connectString);
+		connection.connect(function(err) {
+			if (err) {
+				return console.error('could not connect to postgres', err);
+			}
+			//console.log('connected');
+						
+			var query = 'SELECT ';
+			for(col in columns){				
+				query += columns[col] ;
+				if(col<columns.length-1){
+					query += ', ';
+				}
+			}
+			
+			query += ' FROM ' + queryParams.tableName;
+			
+			if(queryParams.where != undefined){ 
+				query += ' WHERE ' + queryParams.where ;			
+			}			
+			if(queryParams.limit != undefined){
+				query += ' LIMIT ' + queryParams.limit;
+			}
+			query += ';';			
+			//console.log(query);
+			
+			connection.query(query, function(err, result) {
+				if (err) {
+					console.log('error')
+					console.log(err.stack);
+				}
+				
+				if(queryParams.properties == undefined || queryParams.properties == 'all' )
+				{
+					for(field in result.fields){
+						columns.push(result.fields[field].name);
+					}
+				}
+				
+				for (each in result.rows) {
+					var item = {};
+					for(i in columns){
+						var col = columns[i];
+						item[col] = result.rows[each][col];
+					}
+					resultRows.push(item);
+				}
+				callback(resultRows);
+			});
+			connection.on('end', function(){
+				client.end();
+			});				
+		});
+		
+	} else {
+		throw "there is no valid db type. [type] = " + credentials.type;
+	}
+
+}
+
+
 /**
  * Creates a geojson 
- * @param {Object} object with query parameters:<br>
- * <ul>
- * 		<li> <b>geometry: </b>  column name that contains the geometry
-		<li> <b>tableName: </b> table from the database
-		<li> <b>properties: </b> How are the properties going to be created (all, none, array with properties' names)
-		</ul>
- * @param {Object} callback function
+ * @param {Object} geometryColumn
+ * @param {Object} tableName
  */
 var geoQuery = function(queryParams, callback) {
 	var geojson = {
@@ -136,7 +219,13 @@ var geoQuery = function(queryParams, callback) {
 	}
 	//Mysql query
 	if (credentials.type === 'mysql') {
-		var query = 'SELECT *, AsWKT(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName;
+		var query = 'SELECT *, AsWKT(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName;		
+		if(queryParams.dateColumn != undefined && queryParams.dateRange != undefined){ 
+			query += ' WHERE ' + queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;			
+		}			
+		if(queryParams.limit != undefined){
+			query += ' LIMIT ' + queryParams.limit;
+		}
 		var queryCon = connection.query(query);
 		queryCon
 			.on('result', function(row){
@@ -173,26 +262,60 @@ var geoQuery = function(queryParams, callback) {
 	} else if(credentials.type === 'postgis'){
 
 		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
-		console.log("Query to PostGis");
-		console.log(connectString);
+		//console.log("Query to PostGis");
+		//console.log(connectString);
 		connection = new pg.Client(connectString);
 		connection.connect(function(err) {
 			if (err) {
 				return console.error('could not connect to postgres', err);
-
 			}
-			console.log('connected');
-			var query = 'SELECT *, ST_AsText(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName + ' LIMIT 10';
-			console.log("PostGIS query");
-			console.log(query);
-			connection.query(query, function(err, data) {
+			//console.log('connected');
+			var query = 'SELECT *, ST_AsText(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName;
+			if(queryParams.dateColumn != undefined && queryParams.dateRange != undefined){ 
+				query += ' WHERE ' + queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;			
+			}			
+			if(queryParams.limit != undefined){
+				query += ' LIMIT ' + queryParams.limit;
+			}
+			//console.log(query);
+			connection.query(query, function(err, result) {
 				if (err) {
 					console.log('error')
 					console.log(err.stack);
 				}
-				console.log(data);
-				callback(data);
+
+				if(queryParams.properties == 'all')
+				{
+					for(field in result.fields){
+						var name = result.fields[field].name;
+						if (name != queryParams.geometry && name != 'wkt')
+							columns.push(result.fields[field].name);
+					}
+				}
+
+				for (each in result.rows) {
+					var properties = {};
+					for(i in columns){
+						var col = columns[i];
+						properties[col] = result.rows[each][col];
+					}
+					var Terraformer = require('terraformer');
+					var WKT = require('terraformer-wkt-parser');			
+					var geometry = WKT.parse(result.rows[each].wkt);
+					var feature = {
+						"type" : "Feature",
+						"geometry" : geometry,
+						"properties" : properties
+					};
+					geojson.features.push(feature);
+				}
+				callback(geojson);
+				//console.log(data);
+				//callback(data);
 			});
+			connection.on('end', function(){
+				client.end();
+			});				
 		});
 		
 	} else {
@@ -200,8 +323,9 @@ var geoQuery = function(queryParams, callback) {
 	}
 }
 
+
 var testFunction = function(){
-	
+	console.log("It´s working!");
 }
 
 module.exports = {
@@ -211,6 +335,7 @@ module.exports = {
 	connectToDb : connectToDb,
 	//endConnection : endConnection,
 	geoQuery : geoQuery,
+	query : query,
 	testFunction : testFunction
 }
 
