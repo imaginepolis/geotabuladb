@@ -1,64 +1,52 @@
-# geotabuladb
-GeoTabulaDB
-===========
+**Welcome to the geotabuladb wiki!**
 
-GeoTabulaDb is a simple library to connect to a geodatabase and get geojson for displaying in a web page. 
+GeoTabulaDB is a library to get geojson files from queries to different geodatabases. Currently, geotabuladb supports MySQL and PostgreSQL. The resulting geojson can have only geometry or geometry plus all properties or a subset of properties from the database. 
 
-#Example of Usage
+**Usage**  
+Create a folder to hold the project and initialize it.
+```
+$ mkdir my_project
+$ cd my_proyect
+$ npm init
+```
+Install the library from npm
+```
+$ npm install geotabuladb
+```
 
-This howto walks through the steps required to setup the environment and build a simple web-based application to display a shape and analyse their non spacial related data.
-# Workspace Setup
-## Packages Installation
-### Ubuntu 14.04
+**Example**
 ```
-# Postgres
-sudo apt-get install postgresql postgresql-contrib postgresql-client pgadmin3
-sudo apt-get install postgis postgresql-9.3-postgis-scripts
-# NodeJS
-sudo apt-get install nodejs npm
+var geo = require('geotabuladb');
+geo.setCredentials({
+    type: 'mysql',
+    host: 'localhost',
+    user: 'USER',
+    password: 'PASSWORD',
+    database: 'DATABASE_NAME'
+});
+geo.connectToDb();
+geo.geoQuery({
+	geometry : 'COLUMN_WITH_GEOMETRY',
+	tableName : 'TABLE_NAME',
+	properties : 'all'
+}, function(json) {
+	console.log(json);
+});
 ```
-### Fedora 22
-```
-# Postgres
-ToDo
-# NodeJS
-ToDo
-```
-### Mac OSX 10.x
-```
-# Postgres
-ToDo
-# NodeJS
-ToDo
-```
-## PostGIS setup
-```
-# Create geotabula user
-sudo -i -u postgres
-createuser -P -s -e geotabula
-psql -h localhost -U geotabula geotabula
-# Create geotabula database and enable Postgis
-createdb -O geotabula geotabula
-psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;" geotabula
-```
-# Project Setup
-## Prerequisites
-```
-### Create project folder
-mkdir -p [pathToProjectFolder]
-cd [pathToProjectFolder]
-### Install NodeJS Modules
-npm install geotabula express socket.io terraformer terraformer-wkt-parser
-```
-## Project Template
-A basic NodeJS application has two files and two folders:
-- *index.js:* This file contains the NodeJS code that runs in the server.
-- *index.html:* This is the html file served to the client.
-- *public folder:* The files in this folder are available to the client. This is the place to put client-side JavaScript and CSS files.
-- *node_modules folder:* This folder contains the NodeJS npm installed modules.
+
+**Credentials**  
+To create a connection, first a user must set the credentials. The method `setCredentials()` receives as parameter an object with the following keys:  
+* type: type of database. ('mysql', postgis')
+* host: address of the host
+* user: user
+* password: password for the user
+* database: database name  
 
 
+**Queries**  
+For a simple query, the method `geoQuery()` receives an object with the following keys:
+* tableName: name of the table inside the database
+* geometry: name of the column that has the geometry
+* properties: the properties that will be added to the geojson ('none', 'all', array). If an array is provided, the geojson will have only the properties set inside the array
 
 
-## Release History
-* 0.0.1 Initial Release
