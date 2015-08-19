@@ -1,4 +1,4 @@
-**Welcome to the geotabuladb wiki!**
+**Welcome to the geotabuladb!**
 
 GeoTabulaDB is a library to get geojson files from queries to different geodatabases. Currently, geotabuladb supports MySQL and PostgreSQL. The resulting geojson can have only geometry or geometry plus all properties or a subset of properties from the database. 
 
@@ -44,8 +44,8 @@ To create a connection, first a user must set the credentials. The method `setCr
 
 
 **Queries**
-There are two types of queries: geoquery, and simple query.
-  
+There are two types of queries: 
+*GeoQuery*
 For a geoquery, the method `geoQuery()` receives an object with the following keys:
 * tableName: name of the table inside the database
 * geometry: name of the column that has the geometry
