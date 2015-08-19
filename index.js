@@ -160,7 +160,7 @@ var query = function(queryParams, callback) {
 						
 			var query = 'SELECT ';
 			for(col in columns){				
-				query += columns[col] ;
+				query += columns[col] ;where
 				if(col<columns.length-1){
 					query += ', ';
 				}
@@ -348,7 +348,7 @@ module.exports = {
 	setCredentials : setCredentials,
 	logCredentials : logCredentials,
 	connectToDb : connectToDb,
-	//endConnection : endConnection,
+	endConnection : endConnection,
 	geoQuery : geoQuery,
 	query : query,
 	testFunction : testFunction
