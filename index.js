@@ -338,7 +338,9 @@ var geoQuery = function(queryParams, callback) {
 	}
 }
 
-
+/**
+ * Test Function 
+ */
 var testFunction = function(){
 	console.log("It´s working!");
 }
