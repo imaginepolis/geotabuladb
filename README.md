@@ -45,8 +45,10 @@ To create a connection, first a user must set the credentials. The method `setCr
 
 **Queries**
 There are two types of queries: 
+
 *GeoQuery*
-For a geoquery, the method `geoQuery()` receives an object with the following keys:
+
+The method `geoQuery()` receives an object with the following keys:
 * tableName: name of the table inside the database
 * geometry: name of the column that has the geometry
 * properties: the properties that will be added to the geojson ('none', 'all', array). If an array is provided, the geojson will have only the properties set inside the array
