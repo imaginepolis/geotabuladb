@@ -280,7 +280,23 @@ var geoQuery = function(queryParams, callback) {
 				return console.error('could not connect to postgres', err);
 			}
 			//console.log('connected');
-			var query = 'SELECT *, ST_AsText(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName;
+
+			//var query = 'SELECT *, ST_AsText(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName;			
+			var query = 'SELECT *, ST_AsText(';
+			
+			if(queryParams.geometryOptions != undefined){				
+				if(queryParams.geometryOptions == 'startPoint'){
+					query += ' ST_StartPoint( '+ queryParams.geometry + ' ) ';
+				}else if(queryParams.geometryOptions == 'endPoint'){
+					query += ' ST_EndPoint( '+ queryParams.geometry + ' ) ';
+				}else{
+					query += queryParams.geometry;
+				}				
+			}else{
+				query += queryParams.geometry;
+			}
+			query += ') AS wkt FROM ' + queryParams.tableName;
+
 			if(queryParams.dateColumn != undefined && queryParams.dateRange != undefined){ 
 				query += ' WHERE ' + queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;			
 			}			
