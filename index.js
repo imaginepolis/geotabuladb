@@ -200,9 +200,9 @@ var query = function(queryParams, callback) {
 				}
 				callback(resultRows);
 			});
-			connection.on('end', function(){
-				client.end();
-			});				
+			// connection.on('end', function(){
+// 				
+			// });				
 		});
 		
 	} else {
@@ -328,9 +328,9 @@ var geoQuery = function(queryParams, callback) {
 				//console.log(data);
 				//callback(data);
 			});
-			connection.on('end', function(){
-				client.end();
-			});				
+			// connection.on('end', function(){
+				// client.end();
+			// });				
 		});
 		
 	} else {
