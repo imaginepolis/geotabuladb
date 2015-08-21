@@ -23,7 +23,6 @@ var credentials = {
 	'database' : ''
 };
 
-var connection;
 
 /**
  * 
@@ -52,6 +51,7 @@ var logCredentials = function() {
  * Connects to DB depending on the current credentials 
  */
 var connectToDb = function() {
+	var connection;
 	if (credentials.type === 'mysql') {
 		console.log("connection to mysql database.\n" + logCredentials());
 		connection = mysql.createConnection({
@@ -94,11 +94,13 @@ var connectToDb = function() {
 	} else {
 		throw "there is no valid db type. [type] = " + credentials.type;
 	}
+	
+	return connection;
 }; 
 /**
  * End current connection 
  */
-var endConnection = function(){
+var endConnection = function(connection){
 	if (credentials.type === 'mysql') {
 		connection.end(function(err){
 				
@@ -128,6 +130,7 @@ var query = function(queryParams, callback) {
 	
 	var columns = [];
 	var resultRows = [];
+	var connection;
 	if(queryParams.properties != undefined )
 	{
 		if(queryParams.properties.constructor === Array){
@@ -223,6 +226,7 @@ var query = function(queryParams, callback) {
  * @param {Object} callback function
  */
 var geoQuery = function(queryParams, callback) {
+	var connection;
 	var geojson = {
 			"type" : "FeatureCollection",
 			"features" : []
@@ -327,6 +331,7 @@ var geoQuery = function(queryParams, callback) {
 				callback(geojson);
 				//console.log(data);
 				//callback(data);
+				connection.end();
 			});
 			// connection.on('end', function(){
 				// client.end();
