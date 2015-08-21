@@ -1,7 +1,7 @@
 // ------------------------------------------------------
-// Librerias
+// Libraries
 // ------------------------------------------------------
-var app = require('express')();			// Servidor WEB
+var app = require('express')();			// WEB Server
 var http = require('http').Server(app);  
 var express = require('express');
 
