@@ -160,7 +160,7 @@ var query = function(queryParams, callback) {
 						
 			var query = 'SELECT ';
 			for(col in columns){				
-				query += columns[col] ;where
+				query += columns[col] ;
 				if(col<columns.length-1){
 					query += ', ';
 				}
