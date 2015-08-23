@@ -199,10 +199,11 @@ var query = function(queryParams, callback) {
 					resultRows.push(item);
 				}
 				callback(resultRows);
+				connection.end();
 			});
 			connection.on('end', function(){
-				client.end();
-			});				
+				connection.end();
+			});
 		});
 		
 	} else {
@@ -338,10 +339,11 @@ var geoQuery = function(queryParams, callback) {
 				callback(geojson);
 				//console.log(data);
 				//callback(data);
+				connection.end();
 			});
-			connection.on('end', function(){
+			/*connection.on('end', function(){
 				client.end();
-			});				
+			});*/
 		});
 		
 	} else {
