@@ -313,30 +313,32 @@ var geoQuery = function(queryParams, callback) {
 					console.log(err.stack);
 				}
 
-				if(queryParams.properties == 'all')
-				{
-					for(field in result.fields){
-						var name = result.fields[field].name;
-						if (name != queryParams.geometry && name != 'wkt')
-							columns.push(result.fields[field].name);
-					}
-				}
+				if (result != undefined){
+					if(queryParams.properties == 'all')
+					{
+						for(field in result.fields){
+							var name = result.fields[field].name;
+							if (name != queryParams.geometry && name != 'wkt')
+								columns.push(result.fields[field].name);
+						}
+					}				
 
-				for (each in result.rows) {
-					var properties = {};
-					for(i in columns){
-						var col = columns[i];
-						properties[col] = result.rows[each][col];
+					for (each in result.rows) {
+						var properties = {};
+						for(i in columns){
+							var col = columns[i];
+							properties[col] = result.rows[each][col];
+						}
+						var Terraformer = require('terraformer');
+						var WKT = require('terraformer-wkt-parser');			
+						var geometry = WKT.parse(result.rows[each].wkt);
+						var feature = {
+							"type" : "Feature",
+							"geometry" : geometry,
+							"properties" : properties
+						};
+						geojson.features.push(feature);
 					}
-					var Terraformer = require('terraformer');
-					var WKT = require('terraformer-wkt-parser');			
-					var geometry = WKT.parse(result.rows[each].wkt);
-					var feature = {
-						"type" : "Feature",
-						"geometry" : geometry,
-						"properties" : properties
-					};
-					geojson.features.push(feature);
 				}
 				callback(geojson);
 				//console.log(data);
