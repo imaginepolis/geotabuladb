@@ -156,7 +156,7 @@ var query = function(queryParams, callback) {
 			if (err) {
 				return console.error('could not connect to postgres', err);
 			}
-			//console.log('connected');
+			console.log('connected');
 						
 			var query = 'SELECT ';
 			for(col in columns){				
@@ -175,7 +175,7 @@ var query = function(queryParams, callback) {
 				query += ' LIMIT ' + queryParams.limit;
 			}
 			query += ';';			
-			//console.log(query);
+			console.log(query);
 			
 			connection.query(query, function(err, result) {
 				if (err) {
@@ -190,20 +190,22 @@ var query = function(queryParams, callback) {
 					}
 				}
 				
-				for (each in result.rows) {
-					var item = {};
-					for(i in columns){
-						var col = columns[i];
-						item[col] = result.rows[each][col];
+				if (result != undefined){
+					for (each in result.rows) {
+						var item = {};
+						for(i in columns){
+							var col = columns[i];
+							item[col] = result.rows[each][col];
+						}
+						resultRows.push(item);
 					}
-					resultRows.push(item);
+					callback(resultRows);
 				}
-				callback(resultRows);
 				connection.end();
 			});
-			connection.on('end', function(){
+			/*connection.on('end', function(){
 				connection.end();
-			});
+			});*/
 		});
 		
 	} else {
@@ -304,7 +306,7 @@ var geoQuery = function(queryParams, callback) {
 			if(queryParams.limit != undefined){
 				query += ' LIMIT ' + queryParams.limit;
 			}
-			//console.log(query);
+			console.log(query);
 			connection.query(query, function(err, result) {
 				if (err) {
 					console.log('error')
