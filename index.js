@@ -1233,7 +1233,10 @@ var intersectLayers = function(queryParams, callback) {
  * @param {Object} zonesColumn
  * @param {Object} zonesId
  * @param {Object} routesTableName
- * @param {Object} routesColumn
+ * @param {Object} routesColumn ; it can be the column with a geometry or an array with 4 elements in the following way: 
+ * [ 'lat0', 'long0', 'lat1', long1' ], where the origin is given by (lat0, long0) and the destination by (lat1, long1)
+ * @param {Object} dateColumn
+ * @param {Object} dateRange
  */
 var generateOD_MAtrix = function(queryParams, callback) {
 	console.log("executing getOD_MAtrix ");
@@ -1247,17 +1250,14 @@ var generateOD_MAtrix = function(queryParams, callback) {
 			if (err) {
 				return console.error('could not connect to postgres', err);
 			}
-
-			var query = 'SELECT ';
-			if (queryParams.routesProperties != undefined) {
-				columns = queryParams.routesProperties;
-				for (property in queryParams.routesProperties) {
-					query += queryParams.routesTableName + '.' + queryParams.routesProperties[property] + ', ';
-				}
-			}
 			
-			//query += 'ST_AsText(ST_StartPoint(' + queryParams.routesTableName + '.' + queryParams.routesColumn + ')) AS initial_wkt, ST_AsText(ST_EndPoint(' + queryParams.routesTableName + '.' + queryParams.routesColumn + ')) AS final_wkt, ST_AsText( ' + queryParams.routesTableName + '.' + queryParams.routesColumn + ') AS wkt FROM ' + queryParams.zonesTableName + ', ' + queryParams.routesTableName;
-			query += 'ST_AsText(ST_StartPoint(' + queryParams.routesTableName + '.' + queryParams.routesColumn + ')) AS initial_wkt, ST_AsText(ST_EndPoint(' + queryParams.routesTableName + '.' + queryParams.routesColumn + ')) AS final_wkt FROM ' + queryParams.routesTableName;
+			var query = 'SELECT ';			
+			
+			if(queryParams.routesColumn != undefined && queryParams.properties.constructor === Array){
+				query += 'ST_AsText(ST_MakePoint(' + queryParams.routesTableName + '.' + queryParams.routesColumn[0] +', '+ queryParams.routesTableName + '.' + queryParams.routesColumn[1] +')) AS initial_wkt, ST_AsText(ST_MakePoint(' + queryParams.routesTableName + '.' + queryParams.routesColumn[2] +', '+ queryParams.routesTableName + '.' + queryParams.routesColumn[3] +')) AS final_wkt FROM ' + queryParams.routesTableName;
+			}else{			
+				query += 'ST_AsText(ST_StartPoint(' + queryParams.routesTableName + '.' + queryParams.routesColumn + ')) AS initial_wkt, ST_AsText(ST_EndPoint(' + queryParams.routesTableName + '.' + queryParams.routesColumn + ')) AS final_wkt FROM ' + queryParams.routesTableName;
+			}
 
 			if (queryParams.dateColumn != undefined && queryParams.dateRange != undefined) {
 				query += ' WHERE ' + queryParams.routesTableName + '.' + queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;
