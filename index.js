@@ -1253,7 +1253,7 @@ var generateOD_MAtrix = function(queryParams, callback) {
 			
 			var query = 'SELECT ';			
 			
-			if(queryParams.routesColumn != undefined && queryParams.properties.constructor === Array){
+			if(queryParams.routesColumn != undefined && queryParams.routesColumn.constructor === Array){
 				query += 'ST_AsText(ST_MakePoint(' + queryParams.routesTableName + '.' + queryParams.routesColumn[0] +', '+ queryParams.routesTableName + '.' + queryParams.routesColumn[1] +')) AS initial_wkt, ST_AsText(ST_MakePoint(' + queryParams.routesTableName + '.' + queryParams.routesColumn[2] +', '+ queryParams.routesTableName + '.' + queryParams.routesColumn[3] +')) AS final_wkt FROM ' + queryParams.routesTableName;
 			}else{			
 				query += 'ST_AsText(ST_StartPoint(' + queryParams.routesTableName + '.' + queryParams.routesColumn + ')) AS initial_wkt, ST_AsText(ST_EndPoint(' + queryParams.routesTableName + '.' + queryParams.routesColumn + ')) AS final_wkt FROM ' + queryParams.routesTableName;
