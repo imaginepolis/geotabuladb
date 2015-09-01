@@ -188,9 +188,10 @@ var query = function(queryParams, callback) {
 						}
 						resultRows.push(item);
 					}
+					connection.end();
 					callback(resultRows);
 				}
-				connection.end();
+				//connection.end();
 			});
 			/*connection.on('end', function(){
 			 connection.end();
@@ -258,7 +259,7 @@ var geoQuery = function(queryParams, callback) {
 		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
 		//console.log("Query to PostGis");
 		//console.log(connectString);
-		connection = new pg.Client(connectString);
+		var connection = new pg.Client(connectString);
 		connection.connect(function(err) {
 			if (err) {
 				return console.error('could not connect to postgres', err);
@@ -320,10 +321,11 @@ var geoQuery = function(queryParams, callback) {
 						geojson.features.push(feature);
 					}
 				}
+				connection.end();
 				callback(geojson);
 				//console.log(data);
 				//callback(data);
-				connection.end();
+
 			});
 			/*connection.on('end', function(){
 			 client.end();
@@ -539,7 +541,7 @@ var getIntersectingSegments = function(queryParams, callback) {
 
 		var geometry = {};
 		var columns = [];
-		connection4geometry = new pg.Client(connectString);
+		var connection4geometry = new pg.Client(connectString);
 		connection4geometry.connect(function(err) {
 			if (err) {
 				return console.error('could not connect to postgres 0', err);
@@ -560,8 +562,9 @@ var getIntersectingSegments = function(queryParams, callback) {
 				}
 			});
 		});
+		//connection4geometry.end();
 
-		connection4linestring = new pg.Client(connectString);
+		var connection4linestring = new pg.Client(connectString);
 		connection4linestring.connect(function(err) {
 			if (err) {
 				return console.error('could not connect to postgres', err);
@@ -585,7 +588,7 @@ var getIntersectingSegments = function(queryParams, callback) {
 			if (queryParams.limit != undefined) {
 				query += ' LIMIT ' + queryParams.limit;
 			}
-			console.log("PostGIS query");
+			//console.log("PostGIS query");
 			//console.log(query);
 			connection4linestring.query(query, function(err, result) {
 				if (err) {
@@ -635,7 +638,7 @@ var getIntersectingSegments = function(queryParams, callback) {
 				}
 				callback(geojson);
 			});
-			//connection.end();
+			//connection4linestring.end();
 		});
 
 	} else {
@@ -930,13 +933,14 @@ var getRoadVelocityFromRoutes = function(queryParams, callback) {
 	if (credentials.type === 'postgis') {
 
 		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
-		console.log("Query to PostGis");
+		//console.log("Query to PostGis");
 
 		var road = {};
 		var buffer = {};
 		var columns = [];
 		var properties = {};
-		connection4road = new pg.Client(connectString);
+		var numOfRoutesInside = 0;
+		var connection4road = new pg.Client(connectString);
 		connection4road.connect(function(err) {
 			if (err) {
 				return console.error('could not connect to postgres 0', err);
@@ -964,6 +968,7 @@ var getRoadVelocityFromRoutes = function(queryParams, callback) {
 				}
 
 				for (each in result.rows) {
+					numOfRoutesInside++;
 					var WKT = require('terraformer-wkt-parser');
 					road = WKT.parse(result.rows[each].wkt);
 					buffer = WKT.parse(result.rows[each].wkt_buffer);
@@ -971,12 +976,14 @@ var getRoadVelocityFromRoutes = function(queryParams, callback) {
 						var col = columns[i];
 						properties[col] = result.rows[each][col];
 					}
-
 				}
+				connection4road.end();
 			});
+			//connection4road.end();
 		});
+		//connection4road.end();
 
-		connection4routes = new pg.Client(connectString);
+		var connection4routes = new pg.Client(connectString);
 		connection4routes.connect(function(err) {
 			if (err) {
 				return console.error('could not connect to postgres', err);
@@ -1001,7 +1008,7 @@ var getRoadVelocityFromRoutes = function(queryParams, callback) {
 			if (queryParams.limit != undefined) {
 				query += ' LIMIT ' + queryParams.limit;
 			}
-			console.log("PostGIS query");
+			//console.log("PostGIS query");
 			//console.log(query);
 			connection4routes.query(query, function(err, result) {
 				if (err) {
@@ -1025,7 +1032,7 @@ var getRoadVelocityFromRoutes = function(queryParams, callback) {
 					var WKT = require('terraformer-wkt-parser');
 					var linestring = WKT.parse(result.rows[each].wkt);
 					var numOfSegments = linestring.coordinates.length - 1;
-					console.log("numOfSegments: " + numOfSegments);
+					//console.log("numOfSegments: " + numOfSegments);
 
 					for (var coordinate = 0; coordinate < numOfSegments; coordinate++) {
 
@@ -1075,9 +1082,9 @@ var getRoadVelocityFromRoutes = function(queryParams, callback) {
 						}
 					}
 				}
-
 				velocity /= numOfSegmentsInside;
 				properties["velocity"] = velocity;
+				properties["numOfRoutes4Velocity"] = numOfRoutesInside;
 				properties["numOfSegments4Velocity"] = numOfSegmentsInside;
 
 				var feature = {
@@ -1086,14 +1093,10 @@ var getRoadVelocityFromRoutes = function(queryParams, callback) {
 					"properties" : properties
 				};
 				geojson.features.push(feature);
-
+				connection4routes.end();
 				callback(geojson);
 			});
-			//connection.end();
 		});
-
-		//callback(geojson);
-
 	} else {
 		throw "there is no valid db type. [type] = " + credentials.type;
 	}
@@ -1245,7 +1248,7 @@ var generateOD_MAtrix = function(queryParams, callback) {
 		
 		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;		
 		
-		connection4routes = new pg.Client(connectString);
+		var connection4routes = new pg.Client(connectString);
 		connection4routes.connect(function(err) {
 			if (err) {
 				return console.error('could not connect to postgres', err);
@@ -1331,6 +1334,7 @@ var generateOD_MAtrix = function(queryParams, callback) {
 								}
 								matrix[origin][destination]++;
 							}
+							connection4routes.end();
 							callback(matrix);
 						}
 																							
@@ -1376,6 +1380,7 @@ var generateOD_MAtrix = function(queryParams, callback) {
 								}
 								matrix[origin][destination]++;
 							}
+							connection4routes.end();
 							callback(matrix);
 						}
 					
@@ -1383,8 +1388,7 @@ var generateOD_MAtrix = function(queryParams, callback) {
 					});
 					
 				}
-									
-				connection4routes.end();
+				//connection4routes.end();
 			});
 
 		});
@@ -1404,7 +1408,7 @@ var getIdZone = function(queryParams, callback) {
 		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
 		//console.log("Query to PostGis");
 		
-		connection4zone = new pg.Client(connectString);
+		var connection4zone = new pg.Client(connectString);
 		connection4zone.connect(function(err) {
 			if (err) {
 				return console.error('could not connect to postgres ', err);
@@ -1427,21 +1431,26 @@ var getIdZone = function(queryParams, callback) {
 				}
 				//console.log(" -getIdZone+ " + result.rows.length);
 
-				for (each in result.rows) {
-					id = result.rows[each].gid;
-					//console.log('id ' + id);
-				}
-				
-				if (queryParams.userData == undefined){
-					callback(id);	
-				}else{
-					callback({
-						'id' : id,
-						'userData' : queryParams.userData 
-					});
-				}
-				
-				//connection4zone.end();
+
+					for (each in result.rows) {
+						id = result.rows[each].gid;
+						//console.log('id ' + id);
+					}
+
+					if (queryParams.userData == undefined) {
+
+						callback(id);
+						connection4zone.end();
+					} else {
+
+						callback({
+							'id': id,
+							'userData': queryParams.userData
+						});
+						connection4zone.end();
+					}
+
+				connection4zone.end();
 			});
 			//console.log('id after conection: ' + id);
 
@@ -1501,6 +1510,7 @@ var getBuffer = function(queryParams, callback) {
 					};
 					geojson.features.push(feature);
 				}
+
 				callback(geojson);
 			});
 		});
