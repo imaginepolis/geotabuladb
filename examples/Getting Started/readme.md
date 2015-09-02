@@ -32,19 +32,23 @@ psql -U geotabula -d geotabula -f barrios_catastrales.sql
 ```
 ## Project Template
 A basic NodeJS application has two files and two folders:
+
 - *index.js:* This file contains the NodeJS code that runs in the server.
 - *index.html:* This is the html file served to the client.
 - *public folder:* The files in this folder are available to the client. This is the place to put client-side JavaScript and CSS files.
 - *node_modules folder:* This folder contains the NodeJS npm locally installed or linked modules.
 
 To manage the client-side application we have three additional JavaScript files and one CSS file:
+
 - public/js/*actions.js*: This file contains the functions/commands to manage the client-server socket communication.
 - public/js/*map.js*: This file contains the map interaction functions.
 - public/js/*globals.js*: This file contains the global variables used by both server and client.
 - public/css/*viewer.css*: This file contains the CSS styles that will be applied to the objects by the JavaScript events.
 
 The general structure for the JavaScript files is:
+
 1. Imports: Libraries and globals.
 2. Script/Initialization: Instructions to run when the script is load (by the server or the client).
 3. Functions: The functions to be called on specific events.
+
 Be aware that JavaScript does not provide a standard way to make imports. In this example we use the require() method for the server side and the script tag in the head of index.html for the client side. For a large project it would be better to use libraries like [Browserify](http://browserify.org/) or [Webpack](http://webpack.github.io/) or frameworks like [Meteor](https://www.meteor.com/).
