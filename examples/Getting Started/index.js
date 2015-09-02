@@ -5,83 +5,84 @@ var app = require('express')();			// WEB Server
 var http = require('http').Server(app);  
 var express = require('express');
 
-var io = require('socket.io')(http);    // Libreria para manejar los sockets
-var geo = require('geotabuladb');		// Librería para manejo de base de datos 
+var io = require('socket.io')(http);    // WebSockets handling
+var geo = require('geotabuladb');		// Database operation
+
+// ------------------------------------------------------
+// Constants
+// ------------------------------------------------------
+var glbs = require('./public/js/globals.js');	// With this we made the client and server shared variables available to the server
 
 // ------------------------------------------------------
 // Variables
 // ------------------------------------------------------
-var clients = {}; // Diccionario para guardar los clientes
+var clients = {}; // Dictionary to storage client's sessions
 
 // ------------------------------------------------------
-// Funciones
+// Functions
 // ------------------------------------------------------
+
 function getMap(socketId, msg) {
 	
-	parameters = {
-		tableName : 'redprimariawgs84',
-	    geometry : 'geom', 					// Columna que tiene la geometría
-	    properties : 'all'					// Las demás columnas que quiero recuperar, para específicas se pasan como Array
-	    //limit: 10							// Para limitar el número de registros recuperados
+	var parameters = {
+		tableName : 'barrios_catastrales_wgs84',	// The name of the table we are going to query
+	    geometry : 'geom', 							// The name of the column who has the geometry
+	    properties : 'all'							// Additional columns we want to recover --> For specific columns you have to pass columns' names as an Array
+	    //limit: 10									// Optional if you want to limit the number of results
 	};
 	
 	geo.geoQuery({
-		tableName : 'redprimariawgs84',
-	    geometry : 'geom', 					// Columna que tiene la geometría
-	    properties : 'all'					// Las demás columnas que quiero recuperar, para específicas se pasan como Array
-	    //limit: 10							// Para limitar el número de registros recuperados
+		tableName : parameters.tableName,
+	    geometry : parameters.geometry,
+	    properties : parameters.properties
 	},function(json) {
-		console.log('pre_emit '+json);
-		clients[socketId].emit('draw_map', json); // Envío al cliente el evento
-		console.log('post_emit');
+		clients[socketId].emit(glbs.DRAW_MAP, json); // Sending to the client the new event...
 	});	
 }
 
 // ------------------------------------------------------
-// Inicialización
+// Initialization
 // ------------------------------------------------------
-// Inicializando GeoTabula  // ToDo --> Ajustar para coincidir con la base de datos geotabula
+// Inicializando GeoTabula
 geo.setCredentials({
 	type: 'postgis',
 	host: 'localhost',
-	user: 'tomsa',
-	password: 'tomsa',
-	database: 'bogotaDB'
-})
+	user: 'geotabula',
+	password: 'geotabula',
+	database: 'geotabula'
+});
 
-// Inicializando el servidor...
-app.use(express.static(__dirname + '/public'));  // Definiendo el servidor público para el servidor WEB
+// Web server initialization...
+app.use(express.static(__dirname + '/public')); // Setting up the public folder
 
-// Al recibir una solicitud para '/' contesto con '/index.html'
 app.get('/', function(req, res){
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(__dirname + '/index.html'); 		// Setting up the server root file...
 });
 
-// El servidor escucha en el puerto 8080
-http.listen(8080, function(){
-  console.log('listening on port:8080'); // Println
+http.listen(8080, function(){ 					// Setting ip the server port...
+  console.log('Server ready and listening on port:8080');
 });
 
 // ------------------------------------------------------
-// Manejo de eventos
+// Event Management
 // ------------------------------------------------------
-// Si libreria de sockets recibe una conexión...
+// When socket.io receives a connection...
 io.on('connection', function(socket){
-    // Almacenando referencia al socket en el diccionario de clientes...
-    if(!clients[socket.id]){
-    	console.log('new socket');
+	console.log(': Socket connection from client '+socket.id);
+
+	// Standard socket administration methods:
+    if(!clients[socket.id]){				// If there is a new connection we should save the client id...
+    	console.log(':! This is a new connection request... ');
         clients[socket.id] = socket;
     }
-    
-    // Si recibe solicitud de desconexión, eliminar la referencia al socket del diccionario (la libreria se encarga de cerrarlo)
-    socket.on('disconnect', function(){
-    	console.log('end socket');
+    socket.on('disconnect', function(){		// If we receive a disconnection request we should remove the client id...
+    	console.log(':! This is a disconnection request...');
         delete clients[socket.id];
     });
     
-    // Eventos definidos por el programador...
-    socket.on('get_map', function(msg){ // **colocar constantes en JS común!!
-        console.log('get_map');
-        getMap(socket.id,msg) // respuesta del socket
+    // App specific methods:
+    socket.on(glbs.GET_MAP, function(msg){
+        console.log(':: This is a '+glbs.GET_MAP+' request...');
+        getMap(socket.id,msg);
     });
 });
