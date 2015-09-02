@@ -1,5 +1,5 @@
 // ------------------------------------------------------
-// Libraries
+// Imports
 // ------------------------------------------------------
 var app = require('express')();			// WEB Server
 var http = require('http').Server(app);  
@@ -8,9 +8,6 @@ var express = require('express');
 var io = require('socket.io')(http);    // WebSockets handling
 var geo = require('geotabuladb');		// Database operation
 
-// ------------------------------------------------------
-// Constants
-// ------------------------------------------------------
 var glbs = require('./public/js/globals.js');	// With this we made the client and server shared variables available to the server
 
 // ------------------------------------------------------
@@ -19,31 +16,8 @@ var glbs = require('./public/js/globals.js');	// With this we made the client an
 var clients = {}; // Dictionary to storage client's sessions
 
 // ------------------------------------------------------
-// Functions
+// Script --> Initialization
 // ------------------------------------------------------
-
-function getMap(socketId, msg) {
-	
-	var parameters = {
-		tableName : 'barrios_catastrales_wgs84',	// The name of the table we are going to query
-	    geometry : 'geom', 							// The name of the column who has the geometry
-	    properties : 'all'							// Additional columns we want to recover --> For specific columns you have to pass columns' names as an Array
-	    //limit: 10									// Optional if you want to limit the number of results
-	};
-	
-	geo.geoQuery({
-		tableName : parameters.tableName,
-	    geometry : parameters.geometry,
-	    properties : parameters.properties
-	},function(json) {
-		clients[socketId].emit(glbs.DRAW_MAP, json); // Sending to the client the new event...
-	});	
-}
-
-// ------------------------------------------------------
-// Initialization
-// ------------------------------------------------------
-// Inicializando GeoTabula
 geo.setCredentials({
 	type: 'postgis',
 	host: 'localhost',
@@ -53,7 +27,7 @@ geo.setCredentials({
 });
 
 // Web server initialization...
-app.use(express.static(__dirname + '/public')); // Setting up the public folder
+app.use(express.static(__dirname + '/public')); // Setting up the public folder...
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html'); 		// Setting up the server root file...
@@ -86,3 +60,24 @@ io.on('connection', function(socket){
         getMap(socket.id,msg);
     });
 });
+
+// ------------------------------------------------------
+// Functions
+// ------------------------------------------------------
+function getMap(socketId, msg) {
+
+	var parameters = {
+		tableName : 'barrios_catastrales_wgs84',	// The name of the table we are going to query
+		geometry : 'geom', 							// The name of the column who has the geometry
+		properties : 'all'							// Additional columns we want to recover --> For specific columns you have to pass columns' names as an Array
+		//limit: 10									// Optional if you want to limit the number of results
+	};
+
+	geo.geoQuery({
+		tableName : parameters.tableName,
+		geometry : parameters.geometry,
+		properties : parameters.properties
+	},function(json) {
+		clients[socketId].emit(glbs.DRAW_MAP, json); // Sending to the client the new event...
+	});
+}

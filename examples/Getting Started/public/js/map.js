@@ -3,6 +3,8 @@
 var map;								// El mapa a visualizar
 var layersControl = L.control.layers(); // Para manejar las capas del mapa
 
+console.log(window.navigator.userAgent);
+
 function createMap() {
     map = L.map('map').setView([4.66198, -74.09866], 11);  				// Posición inical del mapa (lat, long, zoom)    
     map.addLayer(new L.TileLayer.provider('Esri.WorldGrayCanvas'));     // El mapa base que se va a utilizar (debe importarse la librería correspondiente en index.html)   

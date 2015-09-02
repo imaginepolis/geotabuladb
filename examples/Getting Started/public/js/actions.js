@@ -1,8 +1,11 @@
 // Eventos / comunicación con el servidor
 var socket = io();
 
-socket.on('draw_map', function(msg) {
-	console.log('draw_map: '+msg)
+socket.on(DRAW_MAP, function(msg) {
+	console.log(DRAW_MAP+' request: '+msg);
+
+
+
     var layer = L.geoJson(msg,{ // La L es leaflet --> MOVERLO A MAP.JS
     	// Aquí se van a colocar los eventos que debe manejar el objeto al ser desplegado
     	style:{color : '#0000FF', weight : 4},
@@ -29,8 +32,9 @@ socket.on('draw_map', function(msg) {
             });
     	}
     });
+
     layer.addTo(map);
     layer.bringToBack();
 });
 
-socket.emit('get_map', '');
+socket.emit(GET_MAP, '');

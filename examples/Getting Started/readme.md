@@ -41,3 +41,8 @@ To manage the client-side application we have three additional JavaScript files 
 - public/js/*map.js*: This file contains the map interaction functions.
 - public/js/*globals.js*: This file contains the global variables used by both server and client.
 - public/css/*viewer.css*: This file contains the CSS styles that will be applied to the objects by the JavaScript events.
+The general structure for the JavaScript files is:
+1. Imports: Libraries and globals.
+2. Script/Initialization: Instructions to run when the script is load (by the server or the client).
+3. Functions: The functions to be called on specific events.
+Be aware that JavaScript does not provide a standard way to make imports. In this example we use the require() method for the server side and the script tag in the head of index.html for the client side. For a large project it would be better to use libraries like [Browserify](http://browserify.org/) or [Webpack](http://webpack.github.io/) or frameworks like [Meteor](https://www.meteor.com/).
