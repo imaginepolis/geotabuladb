@@ -73,11 +73,7 @@ function getMap(socketId, msg) {
 		//limit: 10									// Optional if you want to limit the number of results
 	};
 
-	geo.geoQuery({
-		tableName : parameters.tableName,
-		geometry : parameters.geometry,
-		properties : parameters.properties
-	},function(json) {
+	geo.geoQuery(parameters,function(json) {
 		clients[socketId].emit(glbs.DRAW_MAP, json); // Sending to the client the new event...
 	});
 }
