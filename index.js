@@ -141,7 +141,7 @@ var query = function(queryParams, callback) {
 		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
 		//console.log("Simple query to PostGis");
 
-		connection = new pg.Client(connectString);
+		var connection = new pg.Client(connectString);
 		connection.connect(function(err) {
 			if (err) {
 				return console.error('could not connect to postgres', err);
@@ -155,11 +155,15 @@ var query = function(queryParams, callback) {
 					query += ', ';
 				}
 			}
-
 			query += ' FROM ' + queryParams.tableName;
 
 			if (queryParams.where != undefined) {
 				query += ' WHERE ' + queryParams.where;
+				if (queryParams.dateColumn != undefined && queryParams.dateRange != undefined) {
+					query += ' AND ' + queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;
+				}
+			}else if (queryParams.dateColumn != undefined && queryParams.dateRange != undefined) {
+				query += ' WHERE ' + queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;
 			}
 			if (queryParams.limit != undefined) {
 				query += ' LIMIT ' + queryParams.limit;
@@ -173,7 +177,17 @@ var query = function(queryParams, callback) {
 					console.log(err.stack);
 				}
 
-				if (queryParams.properties == undefined || queryParams.properties == 'all') {
+				if (queryParams.userData == undefined) {
+					callback(result.rows);
+					connection.end();
+				} else {
+					callback({
+						'result': result.rows,
+						'userData': queryParams.userData
+					});
+					connection.end();
+				}
+				/*if (queryParams.properties == undefined || queryParams.properties == 'all') {
 					for (field in result.fields) {
 						columns.push(result.fields[field].name);
 					}
@@ -190,7 +204,7 @@ var query = function(queryParams, callback) {
 					}
 					connection.end();
 					callback(resultRows);
-				}
+				}*/
 				//connection.end();
 			});
 			/*connection.on('end', function(){
