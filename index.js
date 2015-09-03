@@ -146,7 +146,7 @@ var query = function(queryParams, callback) {
 			if (err) {
 				return console.error('could not connect to postgres', err);
 			}
-			console.log('connected');
+			//console.log('connected');
 
 			var query = 'SELECT ';
 			for (col in columns) {
@@ -169,7 +169,7 @@ var query = function(queryParams, callback) {
 				query += ' LIMIT ' + queryParams.limit;
 			}
 			query += ';';
-			console.log(query);
+			//console.log(query);
 
 			connection.query(query, function(err, result) {
 				if (err) {
