@@ -1,3 +1,13 @@
+/* Do NOT use UPPERCASE for id/class definition... it wont work with the support.js method! (objects properties names are lowercase)*/
+.layer {
+    color : #00cbff;
+    weight : 0.5;
+}
+
+.focusedobject {
+    color: #FFFF00;
+}
+
 .info {
     padding: 6px 8px;
     font: 14px/16px Arial, Helvetica, sans-serif;
