@@ -1263,6 +1263,7 @@ var generateOD_MAtrix = function(queryParams, callback) {
 		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;		
 		
 		var connection4routes = new pg.Client(connectString);
+		//connection4routes.defaults.poolSize = 50;
 		connection4routes.connect(function(err) {
 			if (err) {
 				return console.error('could not connect to postgres', err);
@@ -1284,7 +1285,7 @@ var generateOD_MAtrix = function(queryParams, callback) {
 			 query += ' LIMIT ' + queryParams.limit;
 			 }*/
 			query += ';';			
-			//console.log(query);
+			console.log(query);
 			
 			connection4routes.query(query, function(err, result) {
 				if (err) {
@@ -1305,9 +1306,9 @@ var generateOD_MAtrix = function(queryParams, callback) {
 					origins.push(-1);
 					destinations.push(-1);
 				}
-				
+				console.log('result with '+numOfRoutes+' routes');
 				for (each in result.rows) {
-					//console.log(' -each ' + each);					
+					//console.log(' -each ' + each);
 					getIdZone({												
 						TableName : queryParams.zonesTableName,
 						geometryColum : queryParams.zonesColumn,
@@ -1348,7 +1349,9 @@ var generateOD_MAtrix = function(queryParams, callback) {
 								}
 								matrix[origin][destination]++;
 							}
+							console.log('od matrix done!');
 							connection4routes.end();
+							console.log(matrix);
 							callback(matrix);
 						}
 																							
@@ -1394,7 +1397,9 @@ var generateOD_MAtrix = function(queryParams, callback) {
 								}
 								matrix[origin][destination]++;
 							}
+							console.log('od matrix done!!');
 							connection4routes.end();
+							console.log(matrix);
 							callback(matrix);
 						}
 					
@@ -1423,6 +1428,7 @@ var getIdZone = function(queryParams, callback) {
 		//console.log("Query to PostGis");
 		
 		var connection4zone = new pg.Client(connectString);
+		//connection4zone.defaults.poolSize = 50;
 		connection4zone.connect(function(err) {
 			if (err) {
 				return console.error('could not connect to postgres ', err);
@@ -1434,7 +1440,7 @@ var getIdZone = function(queryParams, callback) {
 			//var query4zone = 'SELECT id FROM '+queryParams.TableName +' WHERE + ST_CONTAINS( '+ queryParams.point +', '+ queryParams.geometryColum +');' ;
 			//var query4zone = 'SELECT gid FROM '+queryParams.TableName +' WHERE ST_CONTAINS( '+ queryParams.geometryColum +', '+ queryParams.point +');' ;
 			//var query4zone = 'SELECT gid FROM '+queryParams.TableName +' WHERE ST_CONTAINS( '+ queryParams.geometryColum +', ST_GeomFromText( "SRID=4326; '+ queryParams.point +'"));' ;
-			//TODO generaliza to every SRID
+			//TODO generalize to every SRID
 			var query4zone = "SELECT " + queryParams.idColum + " FROM " + queryParams.TableName + " WHERE ST_CONTAINS( " + queryParams.geometryColum + ", ST_GeomFromText( 'SRID=4326; " + queryParams.point + "'));";
 			//console.log(query4zone);
 
@@ -1447,24 +1453,24 @@ var getIdZone = function(queryParams, callback) {
 
 
 					for (each in result.rows) {
-						id = result.rows[each].gid;
+						id = result.rows[each][queryParams.idColum];
 						//console.log('id ' + id);
 					}
 
 					if (queryParams.userData == undefined) {
-
-						callback(id);
 						connection4zone.end();
-					} else {
+						callback(id);
 
+					} else {
+						connection4zone.end();
 						callback({
 							'id': id,
 							'userData': queryParams.userData
 						});
-						connection4zone.end();
+						//connection4zone.end();
 					}
 
-				connection4zone.end();
+				//connection4zone.end();
 			});
 			//console.log('id after conection: ' + id);
 
