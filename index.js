@@ -160,52 +160,57 @@ var query = function(queryParams, callback) {
 				return console.error('could not connect to postgres', err);
 			}
 			//console.log('connected');
-						
-			var query = 'SELECT ';
-			for(col in columns){				
-				query += columns[col] ;
-				if(col<columns.length-1){
-					query += ', ';
+			
+			var query;
+			if (queryParams.querystring) {
+				
+				if(queryParams.querystring.indexOf(';') != -1)
+				{
+					console.log("ERROR: Possible code injection: " + queryParams.querystring)	
 				}
-			}
-			
-			query += ' FROM ' + queryParams.tableName;
-			
-			if(queryParams.where != undefined){ 
-				query += ' WHERE ' + queryParams.where ;			
-			}			
-			if(queryParams.limit != undefined){
-				query += ' LIMIT ' + queryParams.limit;
-			}
-			query += ';';			
-			console.log(query);
+				else
+				{
+					query = queryParams.querystring;
+				}
+				
+			} else {
+				query = 'SELECT ';
+				for (col in columns) {
+					query += columns[col];
+					if (col < columns.length - 1) {
+						query += ', ';
+					}
+				}
+
+				query += ' FROM ' + queryParams.tableName;
+
+				if (queryParams.where != undefined) {
+					query += ' WHERE ' + queryParams.where;
+				}
+				if (queryParams.limit != undefined) {
+					query += ' LIMIT ' + queryParams.limit;
+				}
+				if (queryParams.groupby != undefined) {
+					query += ' GROUP BY ' + queryParams.groupby;
+				}
+				query += ';';
+				
+			}	
+			if (queryParams.debug)
+				console.log(query);
 			
 			connection.query(query, function(err, result) {
 				if (err) {
 					console.log('error')
 					console.log(err.stack);
 				}
-				
-				if(queryParams.properties == undefined || queryParams.properties == 'all' )
-				{
-					for(field in result.fields){
-						columns.push(result.fields[field].name);
-					}
-				}
-				
-				for (each in result.rows) {
-					var item = {};
-					for(i in columns){
-						var col = columns[i];
-						item[col] = result.rows[each][col];
-					}
-					resultRows.push(item);
-				}
-				callback(resultRows);
+				connection.end();
+				callback(result.rows);
 			});
-			// connection.on('end', function(){
-// 				
-			// });				
+			connection.on('end', function(){
+				if(queryParams.debug)		
+					console.log("Connection ended");
+			});				
 		});
 		
 	} else {
@@ -355,7 +360,7 @@ module.exports = {
 	setCredentials : setCredentials,
 	logCredentials : logCredentials,
 	connectToDb : connectToDb,
-	endConnection : endConnection,
+	//endConnection : endConnection,
 	geoQuery : geoQuery,
 	query : query,
 	testFunction : testFunction
