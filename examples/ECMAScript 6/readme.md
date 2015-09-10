@@ -2,7 +2,7 @@
 
 ECMAScript 6 is the new standard of JavaScript. It brings to JS a lot of useful features, specially:
 - [Classes](http://www.2ality.com/2015/02/es6-classes-final.html) with attributes and methods.
-- Native library import/export support through [modules](http://www.2ality.com/2014/09/es6-modules-final.html)
+- Native library import/export support through [modules](http://www.2ality.com/2014/09/es6-modules-final.html).
 
 Right now most of this features are being implement in both browsers and runtime environments like NodeJS, so we can not just start typing ES6 code and run it. However we can write ES6 code and compile it to ES5.1 with tools like [Babel](https://babeljs.io/) and [Browserify](http://browserify.org/).
 
@@ -21,7 +21,7 @@ sudo npm install -g browserify
 ```
 
 # Server-Side
-In the server-side we are going to use "active transpiling". This means is that our ES6 code will be compiled by Node on run time. The advantage of work this way is that we don't need to compile each ES6 JS file in order to run the project.
+In the server-side we are going to use "active transpiling". This means that our ES6 code will be compiled by Node on run time. The advantage of work this way is that we don't need to compile each ES6 JS file in order to run the project.
 ```
 ### Create project folder
 mkdir -p [pathToProjectFolder]
