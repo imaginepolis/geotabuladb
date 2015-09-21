@@ -151,6 +151,7 @@ var query = function(queryParams, callback) {
 			var query = 'SELECT ';
 			for (col in columns) {
 				query += columns[col];
+				console.log(' -- col: '+col);
 				if (col < columns.length - 1) {
 					query += ', ';
 				}
@@ -169,7 +170,7 @@ var query = function(queryParams, callback) {
 				query += ' LIMIT ' + queryParams.limit;
 			}
 			query += ';';
-			//console.log(query);
+			console.log(query);
 
 			connection.query(query, function(err, result) {
 				if (err) {
