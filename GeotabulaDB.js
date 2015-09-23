@@ -72,6 +72,7 @@ export default class GeotabulaDB {
                         columns.push(name);
                     }
                 }
+                console.dir(columns);
 
                 let geojson = {
                     "type" : "FeatureCollection",

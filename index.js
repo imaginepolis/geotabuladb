@@ -114,7 +114,6 @@ var GeotabulaDB = (function () {
                             columns.push(_name);
                         }
                     }
-                    console.dir(columns);
 
                     var geojson = {
                         "type": "FeatureCollection",
