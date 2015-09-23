@@ -2,9 +2,10 @@
   "name": "geotabuladb",
   "version": "0.1.1",
   "description": "A ES6 library to query a geodatabase",
-  "main": "GeotabulaDB.js",
+  "main": "index.js",
   "scripts": {
-    "test": "make test"
+    "test": "make test",
+    "build": "babel GeotabulaDB.js > index.js"
   },
   "repository": {
     "type": "git",
