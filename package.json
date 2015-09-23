@@ -1,17 +1,20 @@
 {
   "name": "geotabuladb",
-  "version": "0.0.7",
-  "description": "A library to query a geodatabase",
-  "main": "index.js",
+  "version": "0.1.1",
+  "description": "A ES6 library to query a geodatabase",
+  "main": "GeotabulaDB.js",
   "scripts": {
-    "test": "make test",
-    "build": ""
+    "test": "make test"
   },
   "repository": {
     "type": "git",
     "url": "git://github.com/tabulaco/geotabuladb.git"
   },
-  "author": "IMAGINE Visual Computing",
+  "author": [
+    {"name": "Juan Camilo Ibarra", "email": "juanibarral@gmail.com"},
+    {"name": "Jhon Alejandro Triana", "email": "alejandro183@gmail.com"},
+    {"name": "Camilo Vargas Cabrera", "email": "vargax@gmail.com"}
+  ],
   "license": "BSD-3-Clause",
   "devDependencies": {
     "mocha": "^2.2.5",
