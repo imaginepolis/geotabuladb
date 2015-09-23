@@ -1,10 +1,11 @@
-import * as pg from 'pg';
+//import * as pg from 'pg';
 import * as wkt from 'terraformer-wkt-parser';
+var pg = require('pg');
 
-const CR_KEY_HOST = {};
-const CR_KEY_USER = {};
-const CR_KEY_PASS = {};
-const CR_KEY_DB = {};
+const CR_KEY_HOST = 'cr_key_host';
+const CR_KEY_USER = 'cr_key_user';
+const CR_KEY_PASS = 'cr_key_pass';
+const CR_KEY_DB   = 'cr_key_db';
 
 const logString = 'GeotabulaDB';
 const logOK  = ' :: ';
@@ -12,7 +13,7 @@ const logERR = ' !! ';
 
 export default class GeotabulaDB {
     constructor() {
-        this._credentials = Map();
+        this._credentials = new Map();
         this._credentials.set(CR_KEY_HOST,'localhost');
     }
 
@@ -32,8 +33,11 @@ export default class GeotabulaDB {
             throw logString+log+logERR+'credentials.database not defined!';
         }
         this._credentials.set(CR_KEY_DB,credentials.database);
+
         console.log(logString+log+logOK+'Credentials set to:');
-        console.dir(this._credentials);
+        for (let pair of this._credentials) {
+            console.log(pair);
+        }
 
         this._connString = ParserHelper.genConnString(this._credentials);
     }
@@ -161,7 +165,7 @@ class ParserHelper {
             }
             connectString += '@';
         }
-        connectString += _credentials.get(CR_KEY_HOST);
+        connectString += credentials.get(CR_KEY_HOST);
         connectString += '/'+credentials.get(CR_KEY_DB);
         console.log(logString+log+logOK+connectString);
 
