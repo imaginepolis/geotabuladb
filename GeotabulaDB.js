@@ -68,7 +68,7 @@ export default class GeotabulaDB {
                 let columns = [];
                 for (let column in result.fields) {
                     let name = result.fields[column].name;
-                    if (name != 'wkt') {
+                    if (name != 'wkt' && name != queryParams.geometry) {
                         columns.push(name);
                     }
                 }
@@ -80,7 +80,7 @@ export default class GeotabulaDB {
 
                 for (let row in result.rows) {
                     let properties = {};
-                    for (let column in columns) {
+                    for (let column of columns) {
                         properties[column] = result.rows[row][column];
                     }
                     let geometry = wkt.parse(result.rows[row]['wkt']);
@@ -156,7 +156,7 @@ class ParserHelper {
         let log = '.genGeoQueryString()';
 
         let query = ParserHelper.genSelectString(queryParams.properties);
-        query += ', ST_AsText('+queryParams.geomertry+') AS wkt';
+        query += ', ST_AsText('+queryParams.geometry+') AS wkt';
         query += ParserHelper.genFromString(queryParams);
 
         console.log(logString+log+logOK+query);
