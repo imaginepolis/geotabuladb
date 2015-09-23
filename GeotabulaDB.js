@@ -1,6 +1,6 @@
-//import * as pg from 'pg';
+import * as pg from 'pg';
 import * as wkt from 'terraformer-wkt-parser';
-var pg = require('pg');
+//var pg = require('pg');
 
 const CR_KEY_HOST = 'cr_key_host';
 const CR_KEY_USER = 'cr_key_user';
@@ -144,13 +144,22 @@ class ParserHelper {
     }
 
     static genSimpleQueryString(queryParams) {
-        return ParserHelper.genSelectString(queryParams.properties) + ParserHelper.genFromString(queryParams);
+        let log = '.genSimpleQueryString()';
+
+        let query = ParserHelper.genSelectString(queryParams.properties) + ParserHelper.genFromString(queryParams);
+
+        console.log(logString+log+logOK+query);
+        return query;
     }
 
     static genGeoQueryString(queryParams) {
+        let log = '.genGeoQueryString()';
+
         let query = ParserHelper.genSelectString(queryParams.properties);
         query += ', ST_AsText('+queryParams.geomertry+') AS wkt';
         query += ParserHelper.genFromString(queryParams);
+
+        console.log(logString+log+logOK+query);
         return query;
     }
 
@@ -167,8 +176,8 @@ class ParserHelper {
         }
         connectString += credentials.get(CR_KEY_HOST);
         connectString += '/'+credentials.get(CR_KEY_DB);
-        console.log(logString+log+logOK+connectString);
 
+        console.log(logString+log+logOK+connectString);
         return connectString;
     }
 }

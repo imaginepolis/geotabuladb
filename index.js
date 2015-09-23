@@ -1,4 +1,3 @@
-//import * as pg from 'pg';
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -11,11 +10,15 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
+var _pg = require('pg');
+
+var pg = _interopRequireWildcard(_pg);
+
 var _terraformerWktParser = require('terraformer-wkt-parser');
 
 var wkt = _interopRequireWildcard(_terraformerWktParser);
 
-var pg = require('pg');
+//var pg = require('pg');
 
 var CR_KEY_HOST = 'cr_key_host';
 var CR_KEY_USER = 'cr_key_user';
@@ -200,14 +203,23 @@ var ParserHelper = (function () {
     }, {
         key: 'genSimpleQueryString',
         value: function genSimpleQueryString(queryParams) {
-            return ParserHelper.genSelectString(queryParams.properties) + ParserHelper.genFromString(queryParams);
+            var log = '.genSimpleQueryString()';
+
+            var query = ParserHelper.genSelectString(queryParams.properties) + ParserHelper.genFromString(queryParams);
+
+            console.log(logString + log + logOK + query);
+            return query;
         }
     }, {
         key: 'genGeoQueryString',
         value: function genGeoQueryString(queryParams) {
+            var log = '.genGeoQueryString()';
+
             var query = ParserHelper.genSelectString(queryParams.properties);
             query += ', ST_AsText(' + queryParams.geomertry + ') AS wkt';
             query += ParserHelper.genFromString(queryParams);
+
+            console.log(logString + log + logOK + query);
             return query;
         }
     }, {
@@ -225,8 +237,8 @@ var ParserHelper = (function () {
             }
             connectString += credentials.get(CR_KEY_HOST);
             connectString += '/' + credentials.get(CR_KEY_DB);
-            console.log(logString + log + logOK + connectString);
 
+            console.log(logString + log + logOK + connectString);
             return connectString;
         }
     }]);
