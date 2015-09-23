@@ -1,3 +1,4 @@
+//import * as pg from 'pg';
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -10,15 +11,11 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _pg = require('pg');
-
-var pg = _interopRequireWildcard(_pg);
-
 var _terraformerWktParser = require('terraformer-wkt-parser');
 
 var wkt = _interopRequireWildcard(_terraformerWktParser);
 
-//var pg = require('pg');
+var pg = require('pg');
 
 var CR_KEY_HOST = 'cr_key_host';
 var CR_KEY_USER = 'cr_key_user';
