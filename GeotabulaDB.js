@@ -1,6 +1,6 @@
-import * as pg from 'pg';
+//import * as pg from 'pg';
 import * as wkt from 'terraformer-wkt-parser';
-//var pg = require('pg');
+var pg = require('pg');
 
 const CR_KEY_HOST = 'cr_key_host';
 const CR_KEY_USER = 'cr_key_user';
