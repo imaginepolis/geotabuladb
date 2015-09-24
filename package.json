@@ -12,9 +12,18 @@
     "url": "git://github.com/tabulaco/geotabuladb.git"
   },
   "author": [
-    {"name": "Juan Camilo Ibarra", "email": "juanibarral@gmail.com"},
-    {"name": "Jhon Alejandro Triana", "email": "alejandro183@gmail.com"},
-    {"name": "Camilo Vargas Cabrera", "email": "vargax@gmail.com"}
+    {
+      "name": "Juan Camilo Ibarra",
+      "email": "juanibarral@gmail.com"
+    },
+    {
+      "name": "Jhon Alejandro Triana",
+      "email": "alejandro183@gmail.com"
+    },
+    {
+      "name": "Camilo Vargas Cabrera",
+      "email": "vargax@gmail.com"
+    }
   ],
   "license": "BSD-3-Clause",
   "devDependencies": {
@@ -23,7 +32,7 @@
     "babel": "^5.8.23"
   },
   "dependencies": {
-    "terraformer-wkt-parser": "^1.0.1",
-    "pg": "^4.4.0"
+    "pg": "^4.4.0",
+    "terraformer-wkt-parser": "^1.0.1"
   }
 }

@@ -1,5 +1,6 @@
 //import * as pg from 'pg';
-import * as wkt from 'terraformer-wkt-parser';
+import * as wkt from 'terraformer-wkt-parser'
+import * as crypto from 'crypto'
 var pg = require('pg');
 
 const CR_KEY_HOST = 'cr_key_host';
@@ -45,20 +46,26 @@ export default class GeotabulaDB {
     query(queryParams, callback) {
         // ToDo implement code injection check...
         let query = typeof queryParams == 'string' ? queryParams : ParserHelper.genSimpleQueryString(queryParams);
+        let hash = GeotabulaDB.genHash(query+Math.random());
+
         pg.connect(this._connString, function(err, client, done) {
             GeotabulaDB.handleError(err);
 
             client.query(query, function(err, result) {
                 GeotabulaDB.handleError(err, client, done);
 
-                callback(result.rows);
+                callback(result.rows, hash);
                 done(client);
             });
         });
+        return hash;
     }
 
     geoQuery(queryParams, callback) {
         let query = ParserHelper.genGeoQueryString(queryParams);
+        let hash = GeotabulaDB.genHash(query+Math.random());
+        console.log('query hash: '+hash);
+
         pg.connect(this._connString, function(err, client, done) {
             GeotabulaDB.handleError(err);
 
@@ -72,7 +79,6 @@ export default class GeotabulaDB {
                         columns.push(name);
                     }
                 }
-                console.dir(columns);
 
                 let geojson = {
                     "type" : "FeatureCollection",
@@ -92,10 +98,12 @@ export default class GeotabulaDB {
                     };
                     geojson.features.push(feature);
                 }
-                callback(geojson);
+                console.log('callback for query '+hash);
+                callback(geojson, hash);
                 done(client);
             });
         });
+        return hash;
     }
 
     static handleError(err, client, done) {
@@ -105,6 +113,12 @@ export default class GeotabulaDB {
         }
         console.dir(err);
         throw logString+logERR+' could not execute query!'
+    }
+
+    static genHash(string) {
+        let hash = crypto.createHash('sha1');
+        hash.update(string);
+        return hash.digest('hex');
     }
 }
 
