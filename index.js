@@ -173,7 +173,7 @@ var GeotabulaDB = (function () {
          |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
          |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
          |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
-         |--> queryParams.spObjId    :: string :: REQUIRED :: Spatial object id
+         |--> queryParams.spObj      :: string :: HEX      :: Spatial object geometry
          |--> queryParams.radius     :: string :: REQUIRED :: Radius to look at
          |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
          |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
@@ -315,7 +315,11 @@ var ParserHelper = (function () {
             var query = ParserHelper.genSelectString(queryParams.properties);
             query += ', ST_AsText(' + queryParams.geometry + ') AS wkt';
             query += ' FROM ' + queryParams.tableName;
-            query += console.log(logString + log + logOK + query);
+            query += ' WHERE ST_DWithin(' + queryParams.geometry + ', ' + queryParams.spObj + ',' + queryParams.radius + ');';
+            query += ParserHelper.genLimitGroupByString(queryParams);
+            query += ';';
+
+            console.log(logString + log + logOK + query);
             return query;
         }
     }, {
@@ -342,17 +346,24 @@ var ParserHelper = (function () {
     }, {
         key: 'genFromString',
         value: function genFromString(queryParams) {
-            var query = '';
+            var query = ' FROM ' + queryParams.tableName;
             if (queryParams.where != undefined) {
                 query += ' WHERE ' + queryParams.where;
             }
+            query += ParserHelper.genLimitGroupByString(queryParams);
+            query += ';';
+            return query;
+        }
+    }, {
+        key: 'genLimitGroupByString',
+        value: function genLimitGroupByString(queryParams) {
+            var query = '';
             if (queryParams.limit != undefined) {
                 query += ' LIMIT ' + queryParams.limit;
             }
             if (queryParams.groupby != undefined) {
                 query += ' GROUP BY ' + queryParams.groupby;
             }
-            query += ' FROM ' + queryParams.tableName + ';';
             return query;
         }
     }, {

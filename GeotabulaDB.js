@@ -134,7 +134,7 @@ export default class GeotabulaDB {
      |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
      |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
      |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
-     |--> queryParams.spObjId    :: string :: REQUIRED :: Spatial object id
+     |--> queryParams.spObj      :: string :: HEX      :: Spatial object geometry
      |--> queryParams.radius     :: string :: REQUIRED :: Radius to look at
      |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
      |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
@@ -237,7 +237,9 @@ class ParserHelper {
         let query = ParserHelper.genSelectString(queryParams.properties);
         query += ', ST_AsText('+queryParams.geometry+') AS wkt';
         query += ' FROM ' + queryParams.tableName;
-        query +=
+        query += ' WHERE ST_DWithin('+queryParams.geometry+', '+queryParams.spObj+','+queryParams.radius+');';
+        query += ParserHelper.genLimitGroupByString(queryParams);
+        query += ';';
 
         console.log(logString+log+logOK+query);
         return query;
@@ -264,17 +266,23 @@ class ParserHelper {
     }
 
     static genFromString(queryParams) {
-        let query = '';
+        let query = ' FROM ' + queryParams.tableName;
         if (queryParams.where != undefined) {
             query += ' WHERE ' + queryParams.where;
         }
+        query += ParserHelper.genLimitGroupByString(queryParams);
+        query += ';';
+        return query;
+    }
+
+    static genLimitGroupByString(queryParams) {
+        let query = '';
         if (queryParams.limit != undefined) {
             query += ' LIMIT ' + queryParams.limit;
         }
         if (queryParams.groupby != undefined) {
             query += ' GROUP BY ' + queryParams.groupby;
         }
-        query += ' FROM ' + queryParams.tableName+';';
         return query;
     }
 
