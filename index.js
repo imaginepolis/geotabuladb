@@ -38,6 +38,14 @@ var GeotabulaDB = (function () {
         this._credentials.set(CR_KEY_HOST, 'localhost');
     }
 
+    /* Set the credentials to connect to the database
+      credentials :: {}
+                    |--> credentials.host     :: string :: OPTIONAL (default= localhost) ::
+                    |--> credentials.user     :: string :: OPTIONAL :: Username to connect to the database
+                    |--> credentials.password :: string :: OPTIONAL :: Password to connect to the database
+                    |--> credentials.database :: string :: REQUIRED :: The database name
+     */
+
     _createClass(GeotabulaDB, [{
         key: 'setCredentials',
         value: function setCredentials(credentials) {
@@ -85,6 +93,22 @@ var GeotabulaDB = (function () {
 
             this._connString = ParserHelper.genConnString(this._credentials);
         }
+
+        /*  Run an asynchronous query in the database. Returns a hash string to identify the query. The callback function
+            will be called on database response.
+             RETURN :: string :: queryHash
+             queryParams ::
+            |--> string :: Plain SQL query to be executed in the database
+            |--> {}     ::
+                 |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+                 |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+                 |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
+                 |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
+                 |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
+             callback :: function(result, hash) ::
+                        |--> result :: [][]    :: Matrix with query results [row][column]
+                        |--> hash   :: string  :: queryHash
+         */
     }, {
         key: 'query',
         value: function query(queryParams, callback) {
@@ -104,6 +128,21 @@ var GeotabulaDB = (function () {
             });
             return hash;
         }
+
+        /*  Run an asynchronous geoQuery in the database. Returns a hash string to identify the geoQuery. The callback
+        function will be called on database response.
+          RETURN :: string :: queryHash
+          queryParams :: {} ::
+                        |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+                        |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+                        |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
+                        |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
+                        |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
+                        |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
+          callback :: function(result, hash) ::
+                     |--> result :: {{}}    :: Query result in geoJSON format
+                     |--> hash   :: string  :: queryHash
+         */
     }, {
         key: 'geoQuery',
         value: function geoQuery(queryParams, callback) {
