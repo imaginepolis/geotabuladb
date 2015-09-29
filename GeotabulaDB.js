@@ -18,7 +18,7 @@ export default class GeotabulaDB {
         this._credentials.set(CR_KEY_HOST,'localhost');
     }
 
-    /* Set the credentials to connect to the database
+    /* Set the credentials to connect to the database.
 
      credentials :: {}
                     |--> credentials.host     :: string :: OPTIONAL (default= localhost) ::
@@ -88,7 +88,7 @@ export default class GeotabulaDB {
     }
 
     /*  Run an asynchronous geoQuery in the database. Returns a hash string to identify the geoQuery. The callback
-    function will be called on database response.
+        function will be called on database response.
 
      RETURN :: string :: queryHash
 
@@ -114,33 +114,47 @@ export default class GeotabulaDB {
 
             client.query(query, function(err, result) {
                 GeotabulaDB.handleError(err, client, done);
+                let geojson = GeotabulaDB.genGeoJSON(queryParams.geometry, result);
 
-                let columns = [];
-                for (let column in result.fields) {
-                    let name = result.fields[column].name;
-                    if (name != 'wkt' && name != queryParams.geometry) {
-                        columns.push(name);
-                    }
-                }
+                console.log('callback for query '+hash);
+                callback(geojson, hash);
+                done(client);
+            });
+        });
+        return hash;
+    }
 
-                let geojson = {
-                    "type" : "FeatureCollection",
-                    "features" : []
-                };
+    /*  Run an asynchronous query in the database, looking for the objects located at the specified radius from the
+        given spatial object. Returns a hash string to identify the geoQuery. The callback function will be called
+        on database response.
 
-                for (let row in result.rows) {
-                    let properties = {};
-                    for (let column of columns) {
-                        properties[column] = result.rows[row][column];
-                    }
-                    let geometry = wkt.parse(result.rows[row]['wkt']);
-                    let feature = {
-                        'type': 'Feature',
-                        'geometry': geometry,
-                        'properties': properties
-                    };
-                    geojson.features.push(feature);
-                }
+     RETURN :: string :: queryHash
+
+     queryParams :: {} ::
+     |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+     |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+     |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
+     |--> queryParams.spObjId    :: string :: REQUIRED :: Spatial object id
+     |--> queryParams.radius     :: string :: REQUIRED :: Radius to look at
+     |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
+     |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
+
+     callback :: function(result, hash) ::
+     |--> result :: {{}}    :: Query result in geoJSON format
+     |--> hash   :: string  :: queryHash
+     */
+    spatialObjectsAtRadius (queryParams, callback) {
+        let query = ParserHelper.genSpObjsAtRadiusString(queryParams);
+        let hash = GeotabulaDB.genHash(query+Math.random());
+        console.log('query hash: '+hash);
+
+        pg.connect(this._connString, function(err, client, done) {
+            GeotabulaDB.handleError(err);
+
+            client.query(query, function(err, result) {
+                GeotabulaDB.handleError(err, client, done);
+                let geojson = GeotabulaDB.genGeoJSON(queryParams.geometry, result);
+
                 console.log('callback for query '+hash);
                 callback(geojson, hash);
                 done(client);
@@ -163,9 +177,72 @@ export default class GeotabulaDB {
         hash.update(string);
         return hash.digest('hex');
     }
+
+    static genGeoJSON(geometryColumnName, result) {
+        let columns = [];
+        for (let column in result.fields) {
+            let name = result.fields[column].name;
+            if (name != 'wkt' && name != geometryColumnName) {
+                columns.push(name);
+            }
+        }
+
+        let geojson = {
+            "type" : "FeatureCollection",
+            "features" : []
+        };
+
+        for (let row in result.rows) {
+            let properties = {};
+            for (let column of columns) {
+                properties[column] = result.rows[row][column];
+            }
+            let geometry = wkt.parse(result.rows[row]['wkt']);
+            let feature = {
+                'type': 'Feature',
+                'geometry': geometry,
+                'properties': properties
+            };
+            geojson.features.push(feature);
+        }
+
+        return geojson;
+    }
 }
 
 class ParserHelper {
+    static genSimpleQueryString(queryParams) {
+        let log = '.genSimpleQueryString()';
+
+        let query = ParserHelper.genSelectString(queryParams.properties) + ParserHelper.genFromString(queryParams);
+
+        console.log(logString+log+logOK+query);
+        return query;
+    }
+
+    static genGeoQueryString(queryParams) {
+        let log = '.genGeoQueryString()';
+
+        let query = ParserHelper.genSelectString(queryParams.properties);
+        query += ', ST_AsText('+queryParams.geometry+') AS wkt';
+        query += ParserHelper.genFromString(queryParams);
+
+        console.log(logString+log+logOK+query);
+        return query;
+    }
+
+    static genSpObjsAtRadiusString(queryParams) {
+        let log = '.genSpObjsAtRadiusString()';
+
+        let query = ParserHelper.genSelectString(queryParams.properties);
+        query += ', ST_AsText('+queryParams.geometry+') AS wkt';
+        query += ' FROM ' + queryParams.tableName;
+        query +=
+
+        console.log(logString+log+logOK+query);
+        return query;
+    }
+
     static genSelectString(columnsP) {
         let columns = [];
         if (columnsP == undefined || columnsP == 'all') {
@@ -187,7 +264,7 @@ class ParserHelper {
     }
 
     static genFromString(queryParams) {
-        let query = ' FROM ' + queryParams.tableName;
+        let query = '';
         if (queryParams.where != undefined) {
             query += ' WHERE ' + queryParams.where;
         }
@@ -197,27 +274,7 @@ class ParserHelper {
         if (queryParams.groupby != undefined) {
             query += ' GROUP BY ' + queryParams.groupby;
         }
-        query += ';';
-        return query;
-    }
-
-    static genSimpleQueryString(queryParams) {
-        let log = '.genSimpleQueryString()';
-
-        let query = ParserHelper.genSelectString(queryParams.properties) + ParserHelper.genFromString(queryParams);
-
-        console.log(logString+log+logOK+query);
-        return query;
-    }
-
-    static genGeoQueryString(queryParams) {
-        let log = '.genGeoQueryString()';
-
-        let query = ParserHelper.genSelectString(queryParams.properties);
-        query += ', ST_AsText('+queryParams.geometry+') AS wkt';
-        query += ParserHelper.genFromString(queryParams);
-
-        console.log(logString+log+logOK+query);
+        query += ' FROM ' + queryParams.tableName+';';
         return query;
     }
 
