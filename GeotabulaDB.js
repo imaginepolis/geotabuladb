@@ -21,10 +21,10 @@ export default class GeotabulaDB {
     /* Set the credentials to connect to the database.
 
      credentials :: {}
-                    |--> credentials.host     :: string :: OPTIONAL (default= localhost) ::
-                    |--> credentials.user     :: string :: OPTIONAL :: Username to connect to the database
-                    |--> credentials.password :: string :: OPTIONAL :: Password to connect to the database
-                    |--> credentials.database :: string :: REQUIRED :: The database name
+     |--> credentials.host     :: string :: OPTIONAL (default= localhost) ::
+     |--> credentials.user     :: string :: OPTIONAL :: Username to connect to the database
+     |--> credentials.password :: string :: OPTIONAL :: Password to connect to the database
+     |--> credentials.database :: string :: REQUIRED :: The database name
      */
     setCredentials(credentials) {
         let log = '.setCredentials()';
@@ -52,22 +52,22 @@ export default class GeotabulaDB {
     }
 
     /*  Run an asynchronous query in the database. Returns a hash string to identify the query. The callback function
-        will be called on database response.
+     will be called on database response.
 
-        RETURN :: string :: queryHash
+     RETURN :: string :: queryHash
 
-        queryParams ::
-        |--> string :: Plain SQL query to be executed in the database
-        |--> {}     ::
-             |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
-             |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
-             |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
-             |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
-             |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
+     queryParams ::
+     |--> string :: Plain SQL query to be executed in the database
+     |--> {}     ::
+     |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+     |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+     |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
+     |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
+     |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
 
-        callback :: function(result, hash) ::
-                    |--> result :: [][]    :: Matrix with query results [row][column]
-                    |--> hash   :: string  :: queryHash
+     callback :: function(result, hash) ::
+     |--> result :: [][]    :: Matrix with query results [row][column]
+     |--> hash   :: string  :: queryHash
      */
     query(queryParams, callback) {
         // ToDo implement code injection check...
@@ -88,21 +88,21 @@ export default class GeotabulaDB {
     }
 
     /*  Run an asynchronous geoQuery in the database. Returns a hash string to identify the geoQuery. The callback
-        function will be called on database response.
+     function will be called on database response.
 
      RETURN :: string :: queryHash
 
      queryParams :: {} ::
-                    |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
-                    |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
-                    |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
-                    |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
-                    |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
-                    |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
+     |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+     |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+     |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
+     |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
+     |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
+     |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
 
      callback :: function(result, hash) ::
-                 |--> result :: {{}}    :: Query result in geoJSON format
-                 |--> hash   :: string  :: queryHash
+     |--> result :: {{}}    :: Query result in geoJSON format
+     |--> hash   :: string  :: queryHash
      */
     geoQuery(queryParams, callback) {
         let query = ParserHelper.genGeoQueryString(queryParams);
@@ -125,8 +125,8 @@ export default class GeotabulaDB {
     }
 
     /*  Run an asynchronous query in the database, looking for the objects located at the specified radius from the
-        given spatial object. Returns a hash string to identify the geoQuery. The callback function will be called
-        on database response.
+     given spatial object. Returns a hash string to identify the geoQuery. The callback function will be called
+     on database response.
 
      RETURN :: string :: queryHash
 
@@ -237,9 +237,8 @@ class ParserHelper {
         let query = ParserHelper.genSelectString(queryParams);
         query += ', ST_AsText('+queryParams.geometry+') AS wkt';
         query += ' FROM ' + queryParams.tableName;
-        query += ' WHERE ST_DWithin('+queryParams.geometry+', '+queryParams.spObj+','+queryParams.radius+');';
+        query += ' WHERE ST_DWithin('+queryParams.geometry+", ST_GeomFromEWKT('"+queryParams.spObj+"'),"+queryParams.radius+')';
         query += ParserHelper.genLimitGroupByString(queryParams);
-        query += ';';
 
         console.log(logString+log+logOK+query);
         return query;
@@ -271,7 +270,6 @@ class ParserHelper {
             query += ' WHERE ' + queryParams.where;
         }
         query += ParserHelper.genLimitGroupByString(queryParams);
-        query += ';';
         return query;
     }
 
@@ -283,6 +281,7 @@ class ParserHelper {
         if (queryParams.groupby != undefined) {
             query += ' GROUP BY ' + queryParams.groupby;
         }
+        query += ';';
         return query;
     }
 
