@@ -135,7 +135,7 @@ export default class GeotabulaDB {
      |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
      |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
      |--> queryParams.spObj      :: string :: HEX      :: Spatial object geometry
-     |--> queryParams.radius     :: string :: REQUIRED :: Radius to look at
+     |--> queryParams.radius     :: string :: REQUIRED :: Radius to look at (in meters)
      |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
      |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
 
@@ -214,7 +214,7 @@ class ParserHelper {
     static genSimpleQueryString(queryParams) {
         let log = '.genSimpleQueryString()';
 
-        let query = ParserHelper.genSelectString(queryParams.properties) + ParserHelper.genFromString(queryParams);
+        let query = ParserHelper.genSelectString(queryParams) + ParserHelper.genFromString(queryParams);
 
         console.log(logString+log+logOK+query);
         return query;
@@ -223,7 +223,7 @@ class ParserHelper {
     static genGeoQueryString(queryParams) {
         let log = '.genGeoQueryString()';
 
-        let query = ParserHelper.genSelectString(queryParams.properties);
+        let query = ParserHelper.genSelectString(queryParams);
         query += ', ST_AsText('+queryParams.geometry+') AS wkt';
         query += ParserHelper.genFromString(queryParams);
 
@@ -234,7 +234,7 @@ class ParserHelper {
     static genSpObjsAtRadiusString(queryParams) {
         let log = '.genSpObjsAtRadiusString()';
 
-        let query = ParserHelper.genSelectString(queryParams.properties);
+        let query = ParserHelper.genSelectString(queryParams);
         query += ', ST_AsText('+queryParams.geometry+') AS wkt';
         query += ' FROM ' + queryParams.tableName;
         query += ' WHERE ST_DWithin('+queryParams.geometry+', '+queryParams.spObj+','+queryParams.radius+');';
@@ -245,9 +245,9 @@ class ParserHelper {
         return query;
     }
 
-    static genSelectString(columnsP) {
+    static genSelectString(queryParams) {
         let columns = [];
-        if (columnsP == undefined || columnsP == 'all') {
+        if (queryParams.properties == undefined || queryParams.properties == 'all') {
             columns.push('*');
         } else {
             for (let prop in queryParams.properties) {

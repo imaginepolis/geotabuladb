@@ -174,7 +174,7 @@ var GeotabulaDB = (function () {
          |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
          |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
          |--> queryParams.spObj      :: string :: HEX      :: Spatial object geometry
-         |--> queryParams.radius     :: string :: REQUIRED :: Radius to look at
+         |--> queryParams.radius     :: string :: REQUIRED :: Radius to look at (in meters)
          |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
          |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
           callback :: function(result, hash) ::
@@ -290,7 +290,7 @@ var ParserHelper = (function () {
         value: function genSimpleQueryString(queryParams) {
             var log = '.genSimpleQueryString()';
 
-            var query = ParserHelper.genSelectString(queryParams.properties) + ParserHelper.genFromString(queryParams);
+            var query = ParserHelper.genSelectString(queryParams) + ParserHelper.genFromString(queryParams);
 
             console.log(logString + log + logOK + query);
             return query;
@@ -300,7 +300,7 @@ var ParserHelper = (function () {
         value: function genGeoQueryString(queryParams) {
             var log = '.genGeoQueryString()';
 
-            var query = ParserHelper.genSelectString(queryParams.properties);
+            var query = ParserHelper.genSelectString(queryParams);
             query += ', ST_AsText(' + queryParams.geometry + ') AS wkt';
             query += ParserHelper.genFromString(queryParams);
 
@@ -312,7 +312,7 @@ var ParserHelper = (function () {
         value: function genSpObjsAtRadiusString(queryParams) {
             var log = '.genSpObjsAtRadiusString()';
 
-            var query = ParserHelper.genSelectString(queryParams.properties);
+            var query = ParserHelper.genSelectString(queryParams);
             query += ', ST_AsText(' + queryParams.geometry + ') AS wkt';
             query += ' FROM ' + queryParams.tableName;
             query += ' WHERE ST_DWithin(' + queryParams.geometry + ', ' + queryParams.spObj + ',' + queryParams.radius + ');';
@@ -324,9 +324,9 @@ var ParserHelper = (function () {
         }
     }, {
         key: 'genSelectString',
-        value: function genSelectString(columnsP) {
+        value: function genSelectString(queryParams) {
             var columns = [];
-            if (columnsP == undefined || columnsP == 'all') {
+            if (queryParams.properties == undefined || queryParams.properties == 'all') {
                 columns.push('*');
             } else {
                 for (var prop in queryParams.properties) {
