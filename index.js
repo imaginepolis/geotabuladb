@@ -173,7 +173,7 @@ var GeotabulaDB = (function () {
          |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
          |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
          |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
-         |--> queryParams.spObj      :: string :: HEX      :: Spatial object geometry
+         |--> queryParams.spObj      :: string :: REQUIRED :: Spatial object geometry IN Extended Well-Known Text representation (EWKT)
          |--> queryParams.radius     :: string :: REQUIRED :: Radius to look at (in meters)
          |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
          |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
