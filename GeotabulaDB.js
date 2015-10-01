@@ -21,10 +21,10 @@ export default class GeotabulaDB {
     /** Set the credentials to connect to the database.
 
      credentials :: {}
-     |--> credentials.host     :: string :: OPTIONAL (default= localhost) ::
-     |--> credentials.user     :: string :: OPTIONAL :: Username to connect to the database
-     |--> credentials.password :: string :: OPTIONAL :: Password to connect to the database
-     |--> credentials.database :: string :: REQUIRED :: The database name
+     |--> .host     :: string :: OPTIONAL (default= localhost) ::
+     |--> .user     :: string :: OPTIONAL :: Username to connect to the database
+     |--> .password :: string :: OPTIONAL :: Password to connect to the database
+     |--> .database :: string :: REQUIRED :: The database name
      */
     setCredentials(credentials) {
         let log = '.setCredentials()';
@@ -59,11 +59,11 @@ export default class GeotabulaDB {
      queryParams ::
      |--> string :: Plain SQL query to be executed in the database
      |--> {}     ::
-         |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
-         |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
-         |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
-         |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
-         |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
+         |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+         |--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+         |--> .where      :: string :: OPTIONAL :: SQL WHERE
+         |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
+         |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
 
      callback :: function(result, hash) ::
      |--> result :: [][]    :: Matrix with query results [row][column]
@@ -93,15 +93,15 @@ export default class GeotabulaDB {
      RETURN :: string :: queryHash
 
      queryParams :: {} ::
-     |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
-     |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
-     |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
-     |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
-     |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
-     |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
+     |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+     |--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+     |--> .geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
+     |--> .where      :: string :: OPTIONAL :: SQL WHERE
+     |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
+     |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
 
      callback :: function(result, hash) ::
-     |--> result :: {{}}    :: Query result in geoJSON format
+     |--> result :: {{}}    :: Query result in geoJSON format (geometry encoded in EWKT format)
      |--> hash   :: string  :: queryHash
      */
     geoQuery(queryParams, callback) {
@@ -131,16 +131,16 @@ export default class GeotabulaDB {
      RETURN :: string :: queryHash
 
      queryParams :: {} ::
-     |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
-     |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
-     |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
-     |--> queryParams.spObj      :: string :: REQUIRED :: Spatial object geometry IN Extended Well-Known Text representation (EWKT)
-     |--> queryParams.radius     :: string :: REQUIRED :: Radius to look at (in meters)
-     |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
-     |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
+     |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+     |--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+     |--> .geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
+     |--> .spObj      :: string :: REQUIRED :: Spatial object geometry IN Extended Well-Known Text representation (EWKT)
+     |--> .radius     :: string :: REQUIRED :: Radius to look at (in meters)
+     |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
+     |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
 
      callback :: function(result, hash) ::
-     |--> result :: {{}}    :: Query result in geoJSON format
+     |--> result :: {{}}    :: Query result in geoJSON format (geometry encoded in EWKT format)
      |--> hash   :: string  :: queryHash
      */
     spatialObjectsAtRadius (queryParams, callback) {

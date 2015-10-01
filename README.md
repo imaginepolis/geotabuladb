@@ -35,6 +35,32 @@ geo.geoQuery({
 });
 ```
 
+### Multiple / Concurrent queries
+Due to the asynchronous nature of NodeJS / PostGIS, if you send multiple queries to the database the callback calls will happen in a random order. If you need to know to witch query a given callback corresponds, you can use the hash returned on the query's call:
+ ```javascript
+ let _queries = new Map(); // --> in this map we are going to save the hash of each query
+
+ // We are going to make 10 queries::
+ for (let t = 1; t <= 10; t++) {
+     let parameters = {
+         tableName: 'TABLE_NAME',	// The name of the table we are going to query
+         geometry: 'GEOM_COLUMN',   // The name of the column who has the geometry
+         where: 't = '+ t,          // SQL WHERE condition
+         properties: 'all'
+     };
+
+     let queryHash = _geo.geoQuery(parameters, callBack); // --> the query hash...
+     _queries.set(queryHash, t); // --> use the hash as the key and 't' as the value...
+ }
+
+ function callBack(geoJSON, queryHash) {
+     let t = _queries.get(queryHash); // --> Recovering the 't' that match this callback call
+     _queries.delete(queryHash); // --> Removing that entry from the map...
+
+     glbs.GeoTimeJSON.pack(t, geoJSON); // --> do something with the query result
+ }
+ ```
+
 ## Credentials
 Set the credentials to connect to the database.
 ```
@@ -87,7 +113,7 @@ Run an asynchronous query in the database. Returns a hash string to identify the
  |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
 
  callback :: function(result, hash) ::
- |--> result :: {{}}    :: Query result in geoJSON format
+ |--> result :: {{}}    :: Query result in geoJSON format (geometry encoded in EWKT format)
  |--> hash   :: string  :: queryHash
 
 geoQuery(queryParams, callback) {
@@ -104,13 +130,13 @@ Run an asynchronous query in the database, looking for the objects located at th
  |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
  |--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
  |--> .geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
- |--> .spObj      :: string :: REQUIRED :: Spatial object geometry IN Extended Well-Known Text representation (EWKT)
+ |--> .spObj      :: string :: REQUIRED :: Spatial object geometry in EWKT (Extended Well-Known Text representation)
  |--> .radius     :: string :: REQUIRED :: Radius to look at (in meters)
  |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
  |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
 
  callback :: function(result, hash) ::
- |--> result :: {{}}    :: Query result in geoJSON format
+ |--> result :: {{}}    :: Query result in geoJSON format (geometry encoded in EWKT format)
  |--> hash   :: string  :: queryHash
 
 spatialObjectsAtRadius (queryParams, callback) {
