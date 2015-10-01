@@ -1,5 +1,5 @@
 # Welcome to the geotabuladb!
-GeoTabulaDB is a library to get geojson files from queries to PostGIS. The resulting geojson can have just the geometry or the geometry plus a subset of properties or all properties from the database.
+GeoTabulaDB is a library to get geoJSON files from queries to PostGIS. The resulting geoJSON can have just the geometry or the geometry plus a subset of properties or all the properties from the database.
 
 ## Usage
 Create a folder to hold the project and initialize it.
@@ -36,45 +36,41 @@ geo.geoQuery({
 ```
 
 ## Credentials
-To create a connection, first a user must set the credentials. The method `setCredentials()` receives as parameter an object with the following keys:
-```javascript
-/** Set the credentials to connect to the database.
+Set the credentials to connect to the database.
+```
+ credentials :: {}
+ |--> credentials.host     :: string :: OPTIONAL (default= localhost) ::
+ |--> credentials.user     :: string :: OPTIONAL :: Username to connect to the database
+ |--> credentials.password :: string :: OPTIONAL :: Password to connect to the database
+ |--> credentials.database :: string :: REQUIRED :: The database name
 
-     credentials :: {}
-     |--> credentials.host     :: string :: OPTIONAL (default= localhost) ::
-     |--> credentials.user     :: string :: OPTIONAL :: Username to connect to the database
-     |--> credentials.password :: string :: OPTIONAL :: Password to connect to the database
-     |--> credentials.database :: string :: REQUIRED :: The database name
-     */
-    setCredentials(credentials) {
-    ...
-    }
+setCredentials(credentials) {
+...
+}
 ```
 
 ## Queries
 ### query
-```javascript
-/**  Run an asynchronous query in the database. Returns a hash string to identify the query. The callback function
-     will be called on database response.
+Run an asynchronous query in the database. Returns a hash string to identify the query. The callback function will be called on database response.
+```
+ RETURN :: string :: queryHash
 
-     RETURN :: string :: queryHash
+ queryParams ::
+ |--> string :: Plain SQL query to be executed in the database
+ |--> {}     ::
+     |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+     |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+     |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
+     |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
+     |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
 
-     queryParams ::
-     |--> string :: Plain SQL query to be executed in the database
-     |--> {}     ::
-         |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
-         |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
-         |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
-         |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
-         |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
+ callback :: function(result, hash) ::
+ |--> result :: [][]    :: Matrix with query results [row][column]
+ |--> hash   :: string  :: queryHash
 
-     callback :: function(result, hash) ::
-     |--> result :: [][]    :: Matrix with query results [row][column]
-     |--> hash   :: string  :: queryHash
-     */
-    query(queryParams, callback) {
-    ...
-    }
+query(queryParams, callback) {
+...
+}
 ```
 
 ### geoQuery
