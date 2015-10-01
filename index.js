@@ -100,11 +100,11 @@ var GeotabulaDB = (function () {
           queryParams ::
          |--> string :: Plain SQL query to be executed in the database
          |--> {}     ::
-         |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
-         |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
-         |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
-         |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
-         |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
+             |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+             |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+             |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
+             |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
+             |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
           callback :: function(result, hash) ::
          |--> result :: [][]    :: Matrix with query results [row][column]
          |--> hash   :: string  :: queryHash
@@ -129,7 +129,7 @@ var GeotabulaDB = (function () {
             return hash;
         }
 
-        /**  Run an asynchronous geoQuery in the database. Returns a hash string to identify the geoQuery. The callback
+        /**  Run an asynchronous query in the database. Returns a hash string to identify the query. The callback
          function will be called on database response.
           RETURN :: string :: queryHash
           queryParams :: {} ::
@@ -165,8 +165,8 @@ var GeotabulaDB = (function () {
             return hash;
         }
 
-        /** Run an asynchronous query in the database, looking for the objects located at the specified radius from the
-         given spatial object. Returns a hash string to identify the geoQuery. The callback function will be called
+        /**  Run an asynchronous query in the database, looking for the objects located at the specified radius from the
+         given spatial object. Returns a hash string to identify the query. The callback function will be called
          on database response.
           RETURN :: string :: queryHash
           queryParams :: {} ::

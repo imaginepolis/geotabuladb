@@ -1,30 +1,31 @@
-**Welcome to the geotabuladb!**
+# Welcome to the geotabuladb!
+GeoTabulaDB is a library to get geojson files from queries to PostGIS. The resulting geojson can have just the geometry or the geometry plus a subset of properties or all properties from the database.
 
-GeoTabulaDB is a library to get geojson files from queries to different geodatabases. Currently, geotabuladb supports MySQL and PostgreSQL. The resulting geojson can have only geometry or geometry plus all properties or a subset of properties from the database. 
-
-**Usage**  
+## Usage
 Create a folder to hold the project and initialize it.
-```
+```bash
 $ mkdir my_project
 $ cd my_proyect
 $ npm init
 ```
+
 Install the library from npm
-```
-$ npm install geotabuladb
+```bash
+$ npm install geotabuladb --save
 ```
 
-**Example**
-```
-var geo = require('geotabuladb');
+## Example
+```javascript
+var Geotabuladb = require('geotabuladb');
+
+var geo = new Geotabuladb();
 geo.setCredentials({
-    type: 'mysql',
     host: 'localhost',
     user: 'USER',
     password: 'PASSWORD',
     database: 'DATABASE_NAME'
 });
-geo.connectToDb();
+
 geo.geoQuery({
 	geometry : 'COLUMN_WITH_GEOMETRY',
 	tableName : 'TABLE_NAME',
@@ -34,33 +35,94 @@ geo.geoQuery({
 });
 ```
 
-**Credentials**  
-To create a connection, first a user must set the credentials. The method `setCredentials()` receives as parameter an object with the following keys:  
-* type: type of database. ('mysql', postgis')
-* host: address of the host
-* user: user
-* password: password for the user
-* database: database name  
+## Credentials
+To create a connection, first a user must set the credentials. The method `setCredentials()` receives as parameter an object with the following keys:
+```javascript
+/** Set the credentials to connect to the database.
 
+     credentials :: {}
+     |--> credentials.host     :: string :: OPTIONAL (default= localhost) ::
+     |--> credentials.user     :: string :: OPTIONAL :: Username to connect to the database
+     |--> credentials.password :: string :: OPTIONAL :: Password to connect to the database
+     |--> credentials.database :: string :: REQUIRED :: The database name
+     */
+    setCredentials(credentials) {
+    ...
+    }
+```
 
-**Queries**  
-There are two types of queries: 
+## Queries
+### query
+```javascript
+/**  Run an asynchronous query in the database. Returns a hash string to identify the query. The callback function
+     will be called on database response.
 
-*GeoQuery*
+     RETURN :: string :: queryHash
 
-The method `geoQuery(queryParams, callback)` receives an object and a callback function:
-* queryParams
-	* tableName: name of the table inside the database
-	* geometry: name of the column that has the geometry
-	* properties: the properties that will be added to the geojson ('none', 'all', array). If an array is provided, the geojson will have only the properties set inside the array
-* callback: function to be called when the query returns 
+     queryParams ::
+     |--> string :: Plain SQL query to be executed in the database
+     |--> {}     ::
+         |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+         |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+         |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
+         |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
+         |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
 
-*Query* 
+     callback :: function(result, hash) ::
+     |--> result :: [][]    :: Matrix with query results [row][column]
+     |--> hash   :: string  :: queryHash
+     */
+    query(queryParams, callback) {
+    ...
+    }
+```
 
-The method `query(queryParams, callback)` receives an object and a callback function:
-* queryParams
-	*  tableName: name of the table inside the database
-	*  where: 
-	*  limit: How many rows are going to be retrieved
-	*  properties: How are the properties going to be created ('all', array with properties' names)
+### geoQuery
+```javascript
+/**  Run an asynchronous geoQuery in the database. Returns a hash string to identify the geoQuery. The callback
+     function will be called on database response.
 
+     RETURN :: string :: queryHash
+
+     queryParams :: {} ::
+     |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+     |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+     |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
+     |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
+     |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
+     |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
+
+     callback :: function(result, hash) ::
+     |--> result :: {{}}    :: Query result in geoJSON format
+     |--> hash   :: string  :: queryHash
+     */
+    geoQuery(queryParams, callback) {
+    ...
+    }
+```
+
+### spatialObjectsAtRadius
+```javascript
+/**  Run an asynchronous query in the database, looking for the objects located at the specified radius from the
+     given spatial object. Returns a hash string to identify the query. The callback function will be called
+     on database response.
+
+     RETURN :: string :: queryHash
+
+     queryParams :: {} ::
+     |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+     |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+     |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
+     |--> queryParams.spObj      :: string :: REQUIRED :: Spatial object geometry IN Extended Well-Known Text representation (EWKT)
+     |--> queryParams.radius     :: string :: REQUIRED :: Radius to look at (in meters)
+     |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
+     |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
+
+     callback :: function(result, hash) ::
+     |--> result :: {{}}    :: Query result in geoJSON format
+     |--> hash   :: string  :: queryHash
+     */
+    spatialObjectsAtRadius (queryParams, callback) {
+    ...
+    }
+```
