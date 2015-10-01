@@ -74,51 +74,46 @@ query(queryParams, callback) {
 ```
 
 ### geoQuery
-```javascript
-/**  Run an asynchronous geoQuery in the database. Returns a hash string to identify the geoQuery. The callback
-     function will be called on database response.
+Run an asynchronous geoQuery in the database. Returns a hash string to identify the geoQuery. The callback function will be called on database response.
+```
+ RETURN :: string :: queryHash
 
-     RETURN :: string :: queryHash
+ queryParams :: {} ::
+ |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+ |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+ |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
+ |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
+ |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
+ |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
 
-     queryParams :: {} ::
-     |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
-     |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
-     |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
-     |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
-     |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
-     |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
+ callback :: function(result, hash) ::
+ |--> result :: {{}}    :: Query result in geoJSON format
+ |--> hash   :: string  :: queryHash
 
-     callback :: function(result, hash) ::
-     |--> result :: {{}}    :: Query result in geoJSON format
-     |--> hash   :: string  :: queryHash
-     */
-    geoQuery(queryParams, callback) {
-    ...
-    }
+geoQuery(queryParams, callback) {
+...
+}
 ```
 
 ### spatialObjectsAtRadius
-```javascript
-/**  Run an asynchronous query in the database, looking for the objects located at the specified radius from the
-     given spatial object. Returns a hash string to identify the query. The callback function will be called
-     on database response.
+Run an asynchronous query in the database, looking for the objects located at the specified radius from the given spatial object. Returns a hash string to identify the query. The callback function will be called on database response.
+```
+ RETURN :: string :: queryHash
 
-     RETURN :: string :: queryHash
+ queryParams :: {} ::
+ |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+ |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+ |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
+ |--> queryParams.spObj      :: string :: REQUIRED :: Spatial object geometry IN Extended Well-Known Text representation (EWKT)
+ |--> queryParams.radius     :: string :: REQUIRED :: Radius to look at (in meters)
+ |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
+ |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
 
-     queryParams :: {} ::
-     |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
-     |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
-     |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
-     |--> queryParams.spObj      :: string :: REQUIRED :: Spatial object geometry IN Extended Well-Known Text representation (EWKT)
-     |--> queryParams.radius     :: string :: REQUIRED :: Radius to look at (in meters)
-     |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
-     |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
+ callback :: function(result, hash) ::
+ |--> result :: {{}}    :: Query result in geoJSON format
+ |--> hash   :: string  :: queryHash
 
-     callback :: function(result, hash) ::
-     |--> result :: {{}}    :: Query result in geoJSON format
-     |--> hash   :: string  :: queryHash
-     */
-    spatialObjectsAtRadius (queryParams, callback) {
-    ...
-    }
+spatialObjectsAtRadius (queryParams, callback) {
+...
+}
 ```
