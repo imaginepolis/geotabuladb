@@ -38,7 +38,7 @@ var GeotabulaDB = (function () {
         this._credentials.set(CR_KEY_HOST, 'localhost');
     }
 
-    /* Set the credentials to connect to the database.
+    /** Set the credentials to connect to the database.
       credentials :: {}
      |--> credentials.host     :: string :: OPTIONAL (default= localhost) ::
      |--> credentials.user     :: string :: OPTIONAL :: Username to connect to the database
@@ -94,7 +94,7 @@ var GeotabulaDB = (function () {
             this._connString = ParserHelper.genConnString(this._credentials);
         }
 
-        /*  Run an asynchronous query in the database. Returns a hash string to identify the query. The callback function
+        /**  Run an asynchronous query in the database. Returns a hash string to identify the query. The callback function
          will be called on database response.
           RETURN :: string :: queryHash
           queryParams ::
@@ -129,7 +129,7 @@ var GeotabulaDB = (function () {
             return hash;
         }
 
-        /*  Run an asynchronous geoQuery in the database. Returns a hash string to identify the geoQuery. The callback
+        /**  Run an asynchronous geoQuery in the database. Returns a hash string to identify the geoQuery. The callback
          function will be called on database response.
           RETURN :: string :: queryHash
           queryParams :: {} ::
@@ -165,7 +165,7 @@ var GeotabulaDB = (function () {
             return hash;
         }
 
-        /*  Run an asynchronous query in the database, looking for the objects located at the specified radius from the
+        /** Run an asynchronous query in the database, looking for the objects located at the specified radius from the
          given spatial object. Returns a hash string to identify the geoQuery. The callback function will be called
          on database response.
           RETURN :: string :: queryHash
