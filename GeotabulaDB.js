@@ -107,7 +107,7 @@ export default class GeotabulaDB {
     geoQuery(queryParams, callback) {
         let query = ParserHelper.genGeoQueryString(queryParams);
         let hash = GeotabulaDB.genHash(query+Math.random());
-        console.log('query hash: '+hash);
+        //console.log('query hash: '+hash);
 
         pg.connect(this._connString, function(err, client, done) {
             GeotabulaDB.handleError(err);
@@ -116,7 +116,7 @@ export default class GeotabulaDB {
                 GeotabulaDB.handleError(err, client, done);
                 let geojson = GeotabulaDB.genGeoJSON(queryParams.geometry, result);
 
-                console.log('callback for query '+hash);
+                //console.log('callback for query '+hash);
                 callback(geojson, hash);
                 done(client);
             });
@@ -146,7 +146,7 @@ export default class GeotabulaDB {
     spatialObjectsAtRadius (queryParams, callback) {
         let query = ParserHelper.genSpObjsAtRadiusString(queryParams);
         let hash = GeotabulaDB.genHash(query+Math.random());
-        console.log('query hash: '+hash);
+        //console.log('query hash: '+hash);
 
         pg.connect(this._connString, function(err, client, done) {
             GeotabulaDB.handleError(err);
@@ -155,7 +155,7 @@ export default class GeotabulaDB {
                 GeotabulaDB.handleError(err, client, done);
                 let geojson = GeotabulaDB.genGeoJSON(queryParams.geometry, result);
 
-                console.log('callback for query '+hash);
+                //console.log('callback for query '+hash);
                 callback(geojson, hash);
                 done(client);
             });
@@ -216,7 +216,7 @@ class ParserHelper {
 
         let query = ParserHelper.genSelectString(queryParams) + ParserHelper.genFromString(queryParams);
 
-        console.log(logString+log+logOK+query);
+        //console.log(logString+log+logOK+query);
         return query;
     }
 
@@ -227,7 +227,7 @@ class ParserHelper {
         query += ', ST_AsText('+queryParams.geometry+') AS wkt';
         query += ParserHelper.genFromString(queryParams);
 
-        console.log(logString+log+logOK+query);
+        //console.log(logString+log+logOK+query);
         return query;
     }
 
@@ -240,7 +240,7 @@ class ParserHelper {
         query += ' WHERE ST_DWithin('+queryParams.geometry+", ST_GeomFromEWKT('"+queryParams.spObj+"'),"+queryParams.radius+')';
         query += ParserHelper.genLimitGroupByString(queryParams);
 
-        console.log(logString+log+logOK+query);
+        //console.log(logString+log+logOK+query);
         return query;
     }
 

@@ -40,10 +40,10 @@ var GeotabulaDB = (function () {
 
     /** Set the credentials to connect to the database.
       credentials :: {}
-     |--> credentials.host     :: string :: OPTIONAL (default= localhost) ::
-     |--> credentials.user     :: string :: OPTIONAL :: Username to connect to the database
-     |--> credentials.password :: string :: OPTIONAL :: Password to connect to the database
-     |--> credentials.database :: string :: REQUIRED :: The database name
+     |--> .host     :: string :: OPTIONAL (default= localhost) ::
+     |--> .user     :: string :: OPTIONAL :: Username to connect to the database
+     |--> .password :: string :: OPTIONAL :: Password to connect to the database
+     |--> .database :: string :: REQUIRED :: The database name
      */
 
     _createClass(GeotabulaDB, [{
@@ -100,11 +100,11 @@ var GeotabulaDB = (function () {
           queryParams ::
          |--> string :: Plain SQL query to be executed in the database
          |--> {}     ::
-             |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
-             |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
-             |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
-             |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
-             |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
+             |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+             |--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+             |--> .where      :: string :: OPTIONAL :: SQL WHERE
+             |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
+             |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
           callback :: function(result, hash) ::
          |--> result :: [][]    :: Matrix with query results [row][column]
          |--> hash   :: string  :: queryHash
@@ -133,14 +133,14 @@ var GeotabulaDB = (function () {
          function will be called on database response.
           RETURN :: string :: queryHash
           queryParams :: {} ::
-         |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
-         |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
-         |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
-         |--> queryParams.where      :: string :: OPTIONAL :: SQL WHERE
-         |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
-         |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
+         |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+         |--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+         |--> .geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
+         |--> .where      :: string :: OPTIONAL :: SQL WHERE
+         |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
+         |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
           callback :: function(result, hash) ::
-         |--> result :: {{}}    :: Query result in geoJSON format
+         |--> result :: {{}}    :: Query result in geoJSON format (geometry encoded in EWKT format)
          |--> hash   :: string  :: queryHash
          */
     }, {
@@ -148,7 +148,7 @@ var GeotabulaDB = (function () {
         value: function geoQuery(queryParams, callback) {
             var query = ParserHelper.genGeoQueryString(queryParams);
             var hash = GeotabulaDB.genHash(query + Math.random());
-            console.log('query hash: ' + hash);
+            //console.log('query hash: '+hash);
 
             pg.connect(this._connString, function (err, client, done) {
                 GeotabulaDB.handleError(err);
@@ -157,7 +157,7 @@ var GeotabulaDB = (function () {
                     GeotabulaDB.handleError(err, client, done);
                     var geojson = GeotabulaDB.genGeoJSON(queryParams.geometry, result);
 
-                    console.log('callback for query ' + hash);
+                    //console.log('callback for query '+hash);
                     callback(geojson, hash);
                     done(client);
                 });
@@ -170,15 +170,15 @@ var GeotabulaDB = (function () {
          on database response.
           RETURN :: string :: queryHash
           queryParams :: {} ::
-         |--> queryParams.properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
-         |--> queryParams.tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
-         |--> queryParams.geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
-         |--> queryParams.spObj      :: string :: REQUIRED :: Spatial object geometry IN Extended Well-Known Text representation (EWKT)
-         |--> queryParams.radius     :: string :: REQUIRED :: Radius to look at (in meters)
-         |--> queryParams.limit      :: string :: OPTIONAL :: SQL LIMIT
-         |--> queryParams.groupby    :: string :: OPTIONAL :: SQL GROUP BY
+         |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+         |--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+         |--> .geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
+         |--> .spObj      :: string :: REQUIRED :: Spatial object geometry IN Extended Well-Known Text representation (EWKT)
+         |--> .radius     :: string :: REQUIRED :: Radius to look at (in meters)
+         |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
+         |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
           callback :: function(result, hash) ::
-         |--> result :: {{}}    :: Query result in geoJSON format
+         |--> result :: {{}}    :: Query result in geoJSON format (geometry encoded in EWKT format)
          |--> hash   :: string  :: queryHash
          */
     }, {
@@ -186,7 +186,7 @@ var GeotabulaDB = (function () {
         value: function spatialObjectsAtRadius(queryParams, callback) {
             var query = ParserHelper.genSpObjsAtRadiusString(queryParams);
             var hash = GeotabulaDB.genHash(query + Math.random());
-            console.log('query hash: ' + hash);
+            //console.log('query hash: '+hash);
 
             pg.connect(this._connString, function (err, client, done) {
                 GeotabulaDB.handleError(err);
@@ -195,7 +195,7 @@ var GeotabulaDB = (function () {
                     GeotabulaDB.handleError(err, client, done);
                     var geojson = GeotabulaDB.genGeoJSON(queryParams.geometry, result);
 
-                    console.log('callback for query ' + hash);
+                    //console.log('callback for query '+hash);
                     callback(geojson, hash);
                     done(client);
                 });
@@ -292,7 +292,7 @@ var ParserHelper = (function () {
 
             var query = ParserHelper.genSelectString(queryParams) + ParserHelper.genFromString(queryParams);
 
-            console.log(logString + log + logOK + query);
+            //console.log(logString+log+logOK+query);
             return query;
         }
     }, {
@@ -304,7 +304,7 @@ var ParserHelper = (function () {
             query += ', ST_AsText(' + queryParams.geometry + ') AS wkt';
             query += ParserHelper.genFromString(queryParams);
 
-            console.log(logString + log + logOK + query);
+            //console.log(logString+log+logOK+query);
             return query;
         }
     }, {
@@ -318,7 +318,7 @@ var ParserHelper = (function () {
             query += ' WHERE ST_DWithin(' + queryParams.geometry + ", ST_GeomFromEWKT('" + queryParams.spObj + "')," + queryParams.radius + ')';
             query += ParserHelper.genLimitGroupByString(queryParams);
 
-            console.log(logString + log + logOK + query);
+            //console.log(logString+log+logOK+query);
             return query;
         }
     }, {
