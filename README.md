@@ -79,8 +79,6 @@ setCredentials(credentials) {
 ### query
 Run an asynchronous query in the database. Returns a hash string to identify the query. The callback function will be called on database response.
 ```
- RETURN :: string :: queryHash
-
  queryParams ::
  |--> string :: Plain SQL query to be executed in the database
  |--> {}     ::
@@ -95,15 +93,13 @@ Run an asynchronous query in the database. Returns a hash string to identify the
  |--> hash   :: string  :: queryHash
 
 query(queryParams, callback) {
-...
+    RETURN :: string :: queryHash
 }
 ```
 
 ### geoQuery
 Run an asynchronous query in the database. Returns a hash string to identify the query. The callback function will be called on database response.
 ```
- RETURN :: string :: queryHash
-
  queryParams :: {} ::
  |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
  |--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
@@ -117,21 +113,20 @@ Run an asynchronous query in the database. Returns a hash string to identify the
  |--> hash   :: string  :: queryHash
 
 geoQuery(queryParams, callback) {
-...
+    RETURN :: string :: queryHash
 }
 ```
 
 ### spatialObjectsAtRadius
 Run an asynchronous query in the database, looking for the objects located at the specified radius from the given spatial object. Returns a hash string to identify the query. The callback function will be called on database response.
 ```
- RETURN :: string :: queryHash
-
  queryParams :: {} ::
  |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
  |--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
  |--> .geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
  |--> .spObj      :: string :: REQUIRED :: Spatial object geometry in EWKT (Extended Well-Known Text representation)
  |--> .radius     :: string :: REQUIRED :: Radius to look at (in meters)
+ |--> .where      :: string :: OPTIONAL :: SQL WHERE
  |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
  |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
 
@@ -140,6 +135,6 @@ Run an asynchronous query in the database, looking for the objects located at th
  |--> hash   :: string  :: queryHash
 
 spatialObjectsAtRadius (queryParams, callback) {
-...
+    RETURN :: string :: queryHash
 }
 ```

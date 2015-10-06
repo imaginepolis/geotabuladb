@@ -136,6 +136,7 @@ export default class GeotabulaDB {
      |--> .geometry   :: string :: REQUIRED :: WKT (Geometry's column name)
      |--> .spObj      :: string :: REQUIRED :: Spatial object geometry IN Extended Well-Known Text representation (EWKT)
      |--> .radius     :: string :: REQUIRED :: Radius to look at (in meters)
+     |--> .where      :: string :: OPTIONAL :: SQL WHERE
      |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
      |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
 
@@ -238,6 +239,11 @@ class ParserHelper {
         query += ', ST_AsText('+queryParams.geometry+') AS wkt';
         query += ' FROM ' + queryParams.tableName;
         query += ' WHERE ST_DWithin('+queryParams.geometry+", ST_GeomFromEWKT('"+queryParams.spObj+"'),"+queryParams.radius+')';
+
+        if (queryParams.where != undefined) {
+            query += ' AND ('+queryParams.where+')';
+        }
+
         query += ParserHelper.genLimitGroupByString(queryParams);
 
         //console.log(logString+log+logOK+query);

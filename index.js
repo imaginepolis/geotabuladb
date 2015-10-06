@@ -316,6 +316,11 @@ var ParserHelper = (function () {
             query += ', ST_AsText(' + queryParams.geometry + ') AS wkt';
             query += ' FROM ' + queryParams.tableName;
             query += ' WHERE ST_DWithin(' + queryParams.geometry + ", ST_GeomFromEWKT('" + queryParams.spObj + "')," + queryParams.radius + ')';
+
+            if (queryParams.where != undefined) {
+                query += ' AND (' + queryParams.where + ')';
+            }
+
             query += ParserHelper.genLimitGroupByString(queryParams);
 
             //console.log(logString+log+logOK+query);
