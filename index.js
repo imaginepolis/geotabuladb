@@ -459,10 +459,35 @@ var QueryBuilder = (function () {
             //console.log(query);
             return query;
         }
+
+        /**  Creates a new table from a query.
+          outTable    :: string
+          queryParams ::
+         |--> string :: Plain SQL query to be executed in the database
+         |--> {}     ::
+         |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+         |--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+         |--> .where      :: string :: OPTIONAL :: SQL WHERE
+         |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
+         |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
+          let newTable = 'myNewTable';
+         let queryParams = {
+            tableName = 'myTable',
+            properties = ['col2'],
+            where = "col1 = 'ML*'"
+         };
+          RETURN "CREATE TABLE myNewTable AS(SELECT col2 FROM myTable WHERE col1 = 'ML*');"
+          */
     }, {
         key: 'copyTable',
-        value: function copyTable(inTable, outTable, columns) {
+        value: function copyTable(outTable, queryParams) {
             var query = 'CREATE TABLE ' + outTable + ' AS(';
+
+            query += ParserHelper.genSimpleQueryString(queryParams);
+            query = query.slice(0, -1);
+            query += ');';
+
+            return query;
         }
     }]);
 
@@ -531,11 +556,10 @@ var ParserHelper = (function () {
 
             var query = 'SELECT ';
             for (var col in columns) {
-                query += columns[col];
-                if (col < columns.length - 1) {
-                    query += ', ';
-                }
+                query += columns[col] + ',';
             }
+            query = query.slice(0, -1);
+
             return query;
         }
     }, {
