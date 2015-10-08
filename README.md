@@ -140,7 +140,7 @@ spatialObjectsAtRadius (queryParams, callback) {
 ```
 
 ## QueryBuilder
-This class provides some static methods to generate query strings. You can then execute this queries using the [Geotabula query](###query) method.
+This class provides some static methods to generate query strings. You can then execute this queries using the [Geotabula query](###-query) method.
 ```javascript
 var Geotabuladb = require('geotabuladb');
 
@@ -163,3 +163,54 @@ geo.query(query, function(result, hash) {
     console.log('Table created!');
 });
 ```
+### constants
+```javascript
+export const PK = ' SERIAL PRIMARY KEY';
+export const STRING = ' TEXT';
+export const INT = ' INT';
+export const FLOAT = ' FLOAT';
+export const TIMESTAMP = ' TIMESTAMP';
+```
+
+### dropTable
+Generates the SQL query string to drop a table in the database.
+```javascript
+let tableName = 'oldTable';
+
+console.log( Geotabuladb.QueryBuilder.dropTable(tableName) );
+
+    'DROP TABLE IF EXISTS oldTable;'
+```
+
+### createTable
+Generates the SQL query string to create a table in the database.
+```javascript
+let tableName = 'myTable';
+let columns = [
+    ['id', Geotabuladb.PK],
+    ['col1', Geotabuladb.STRING],
+    ['col2', Geotabuladb.INT]
+];
+
+console.log( Geotabuladb.QueryBuilder.createTable(tableName, columns) );
+
+    'CREATE TABLE myTable(id SERIAL PRIMARY KEY, col1 TEXT, col2 INT);'
+```
+
+### insertInto
+Generates the SQL query string to insert rows in a table in the database.
+```javascript
+let tableName = 'myTable';
+let columns = ['col1', 'col2'];
+let values = [
+    ['ML', 001],
+    ['ML', 725]
+];
+
+console.log( Geotabuladb.QueryBuilder.insertInto(tableName, columns, values) );
+
+     'INSERT INTO myTable(col1,col2) VALUES (ML,001),(ML,725);'
+```
+
+### copyTable
+Generates the SQL query string to copy a table in the database.

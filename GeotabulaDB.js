@@ -222,10 +222,30 @@ export const FLOAT = ' FLOAT';
 export const TIMESTAMP = ' TIMESTAMP';
 
 export class QueryBuilder {
+    /** Generates the SQL query string to drop a table in the database.
+
+     tableName :: string
+
+     RETURN 'DROP TABLE IF EXISTS tableName;'
+     */
     static dropTable(tableName) {
         return 'DROP TABLE IF EXISTS '+tableName+';'
     }
 
+    /** Generates the SQL query string to create a table in the database.
+
+     tableName :: string
+     columns   :: [[]]
+
+     let tableName = 'myTable';
+     let columns = [
+        ['id', Geotabuladb.PK],
+        ['col1', Geotabuladb.STRING],
+        ['col2', Geotabuladb.INT],
+     ]
+
+     RETURN 'CREATE TABLE myTable(id SERIAL PRIMARY KEY, col1 TEXT, col2 INT);'
+     */
     static createTable(tableName, columns) {
         let query = 'CREATE TABLE '+tableName+'(';
         for (let column of columns) {
@@ -237,10 +257,21 @@ export class QueryBuilder {
         return query;
     }
 
-    static copyTable(inTable, outTable, columns) {
-        let query = 'CREATE TABLE '+outTable+' AS('
-    }
+    /** Generates the SQL query string to insert rows in a table in the database.
 
+     tableName :: string
+     columns   :: []
+     values    :: [[]]
+
+     let tableName = 'myTable';
+     let columns = ['col1', 'col2'];
+     let values = [
+        ['ML', 001],
+        ['ML', 725]
+     ];
+
+     RETURN 'INSERT INTO myTable(col1,col2) VALUES (ML,001),(ML,725);'
+     */
     static insertInto(tableName, columns, values) {
         let query = 'INSERT INTO '+tableName+'(';
         for (let column of columns) {
@@ -259,6 +290,10 @@ export class QueryBuilder {
 
         //console.log(query);
         return query;
+    }
+
+    static copyTable(inTable, outTable, columns) {
+        let query = 'CREATE TABLE '+outTable+' AS('
     }
 }
 
