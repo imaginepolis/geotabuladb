@@ -140,7 +140,7 @@ spatialObjectsAtRadius (queryParams, callback) {
 ```
 
 ## QueryBuilder
-This class provides some static methods to generate query strings. You can then execute this queries using the [Geotabula query](###-query) method.
+This class provides some static methods to generate query strings. You can execute this queries using the Geotabula *query* method.
 ```javascript
 var Geotabuladb = require('geotabuladb');
 
@@ -163,7 +163,7 @@ geo.query(query, function(result, hash) {
     console.log('Table created!');
 });
 ```
-### constants
+### Provided Constants
 ```javascript
 export const PK = ' SERIAL PRIMARY KEY';
 export const STRING = ' TEXT';
@@ -213,4 +213,28 @@ console.log( Geotabuladb.QueryBuilder.insertInto(tableName, columns, values) );
 ```
 
 ### copyTable
-Generates the SQL query string to copy a table in the database.
+Generates the SQL query string to create a new table in the database from the results of a query.
+```
+ outTable    :: string
+
+ queryParams ::
+ |--> string :: Plain SQL query to be executed in the database
+ |--> {}     ::
+ |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+ |--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+ |--> .where      :: string :: OPTIONAL :: SQL WHERE
+ |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
+ |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
+```
+```javascript
+let outTable = 'myNewTable';
+let queryParams = {
+    tableName = 'myTable',
+    properties = ['col2'],
+    where = "col1 = 'ML*'"
+};
+
+console.log( Geotabuladb.QueryBuilder.copyTable(outTable, queryParams) );
+
+     "CREATE TABLE myNewTable AS(SELECT col2 FROM myTable WHERE col1 = 'ML*');"
+```

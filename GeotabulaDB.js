@@ -292,8 +292,37 @@ export class QueryBuilder {
         return query;
     }
 
-    static copyTable(inTable, outTable, columns) {
-        let query = 'CREATE TABLE '+outTable+' AS('
+    /**  Creates a new table from a query.
+
+     outTable    :: string
+
+     queryParams ::
+     |--> string :: Plain SQL query to be executed in the database
+     |--> {}     ::
+     |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+     |--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+     |--> .where      :: string :: OPTIONAL :: SQL WHERE
+     |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
+     |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
+
+     let newTable = 'myNewTable';
+     let queryParams = {
+        tableName = 'myTable',
+        properties = ['col2'],
+        where = "col1 = 'ML*'"
+     };
+
+     RETURN "CREATE TABLE myNewTable AS(SELECT col2 FROM myTable WHERE col1 = 'ML*');"
+
+     */
+    static copyTable(outTable, queryParams) {
+        let query = 'CREATE TABLE '+outTable+' AS(';
+
+        query += ParserHelper.genSimpleQueryString(queryParams);
+        query = query.slice(0,-1);
+        query += ');';
+
+        return query;
     }
 }
 
@@ -350,11 +379,10 @@ class ParserHelper {
 
         let query = 'SELECT ';
         for (let col in columns) {
-            query += columns[col];
-            if (col < columns.length - 1) {
-                query += ', ';
-            }
+            query += columns[col]+',';
         }
+        query = query.slice(0,-1);
+
         return query;
     }
 
