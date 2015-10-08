@@ -138,3 +138,28 @@ spatialObjectsAtRadius (queryParams, callback) {
     RETURN :: string :: queryHash
 }
 ```
+
+## QueryBuilder
+This class provides some static methods to generate query strings. You can then execute this queries using the [Geotabula query](###query) method.
+```javascript
+var Geotabuladb = require('geotabuladb');
+
+var geo = new Geotabuladb();
+geo.setCredentials({
+    host: 'localhost',
+    user: 'USER',
+    password: 'PASSWORD',
+    database: 'DATABASE_NAME'
+});
+
+let columns = [
+    ['id', Geotabuladb.PK],
+    ['spO_gid', Geotabuladb.INT], ['spD_gid', Geotabuladb.INT],
+    ['time', Geotabuladb.TIMESTAMP]
+];
+
+let query = Geotabuladb.QueryBuilder.createTable('NEW_TABLE_NAME', columns);
+geo.query(query, function(result, hash) {
+    console.log('Table created!');
+});
+```
