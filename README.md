@@ -142,9 +142,10 @@ spatialObjectsAtRadius (queryParams, callback) {
 ## QueryBuilder
 This class provides some static methods to generate query strings. You can execute this queries using the Geotabula *query* method.
 ```javascript
-var Geotabuladb = require('geotabuladb');
+import GeotabulaDB from 'geotabuladb'
+import * as geoHelpers from 'geotabuladb'
 
-var geo = new Geotabuladb();
+let geo = new GeotabulaDB();
 geo.setCredentials({
     host: 'localhost',
     user: 'USER',
@@ -153,12 +154,12 @@ geo.setCredentials({
 });
 
 let columns = [
-    ['id', Geotabuladb.PK],
-    ['spO_gid', Geotabuladb.INT], ['spD_gid', Geotabuladb.INT],
-    ['time', Geotabuladb.TIMESTAMP]
+    ['id', geoHelpers.PK],
+    ['spO_gid', geoHelpers.INT], ['spD_gid', geoHelpers.INT],
+    ['time', geoHelpers.TIMESTAMP]
 ];
 
-let query = Geotabuladb.QueryBuilder.createTable('NEW_TABLE_NAME', columns);
+let query = geoHelpers.QueryBuilder.createTable('NEW_TABLE_NAME', columns);
 geo.query(query, function(result, hash) {
     console.log('Table created!');
 });
@@ -177,7 +178,7 @@ Generates the SQL query string to drop a table in the database.
 ```javascript
 let tableName = 'oldTable';
 
-console.log( Geotabuladb.QueryBuilder.dropTable(tableName) );
+console.log( geoHelpers.QueryBuilder.dropTable(tableName) );
 
     'DROP TABLE IF EXISTS oldTable;'
 ```
@@ -192,7 +193,7 @@ let columns = [
     ['col2', Geotabuladb.INT]
 ];
 
-console.log( Geotabuladb.QueryBuilder.createTable(tableName, columns) );
+console.log( geoHelpers.QueryBuilder.createTable(tableName, columns) );
 
     'CREATE TABLE myTable(id SERIAL PRIMARY KEY, col1 TEXT, col2 INT);'
 ```
@@ -207,7 +208,7 @@ let values = [
     ['ML', 725]
 ];
 
-console.log( Geotabuladb.QueryBuilder.insertInto(tableName, columns, values) );
+console.log( geoHelpers.QueryBuilder.insertInto(tableName, columns, values) );
 
      'INSERT INTO myTable(col1,col2) VALUES (ML,001),(ML,725);'
 ```
@@ -234,7 +235,7 @@ let queryParams = {
     where = "col1 = 'ML*'"
 };
 
-console.log( Geotabuladb.QueryBuilder.copyTable(outTable, queryParams) );
+console.log( geoHelpers.QueryBuilder.copyTable(outTable, queryParams) );
 
      "CREATE TABLE myNewTable AS(SELECT col2 FROM myTable WHERE col1 = 'ML*');"
 ```
