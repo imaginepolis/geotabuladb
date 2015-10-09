@@ -319,9 +319,9 @@ var QueryBuilder = (function () {
          columns   :: [[]]
           let tableName = 'myTable';
          let columns = [
-            ['id', Geotabuladb.PK],
-            ['col1', Geotabuladb.STRING],
-            ['col2', Geotabuladb.INT],
+            ['id', PK],
+            ['col1', STRING],
+            ['col2', INT],
          ]
           RETURN 'CREATE TABLE myTable(id SERIAL PRIMARY KEY, col1 TEXT, col2 INT);'
          */
@@ -487,6 +487,51 @@ var QueryBuilder = (function () {
             query = query.slice(0, -1);
             query += ');';
 
+            return query;
+        }
+
+        /** Generates the SQL query string to add columns to an existing table in the database.
+          tableName :: string
+         columns   :: [[]]
+          let tableName = 'myTable';
+         let columns = [
+         ['newCol1', STRING],
+         ['newCol2', INT],
+         ]
+          RETURN 'ALTER TABLE myTable ADD COLUMN newCol1 TEXT,ADD COLUMN newCol2 INT;'
+         */
+    }, {
+        key: 'addColumns',
+        value: function addColumns(tableName, columns) {
+            var query = 'ALTER TABLE ' + tableName + ' ';
+            var _iteratorNormalCompletion7 = true;
+            var _didIteratorError7 = false;
+            var _iteratorError7 = undefined;
+
+            try {
+                for (var _iterator7 = columns[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                    var column = _step7.value;
+
+                    query += 'ADD COLUMN ' + column[0] + ' ' + column[1] + ',';
+                }
+            } catch (err) {
+                _didIteratorError7 = true;
+                _iteratorError7 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion7 && _iterator7['return']) {
+                        _iterator7['return']();
+                    }
+                } finally {
+                    if (_didIteratorError7) {
+                        throw _iteratorError7;
+                    }
+                }
+            }
+
+            query = query.slice(0, -1) + ';';
+
+            //console.log(query);
             return query;
         }
     }]);
