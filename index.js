@@ -462,9 +462,7 @@ var QueryBuilder = (function () {
 
         /**  Creates a new table from a query.
           outTable    :: string
-          queryParams ::
-         |--> string :: Plain SQL query to be executed in the database
-         |--> {}     ::
+          queryParams :: {} ::
          |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
          |--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
          |--> .where      :: string :: OPTIONAL :: SQL WHERE
@@ -495,8 +493,8 @@ var QueryBuilder = (function () {
          columns   :: [[]]
           let tableName = 'myTable';
          let columns = [
-         ['newCol1', STRING],
-         ['newCol2', INT],
+             ['newCol1', STRING],
+             ['newCol2', INT],
          ]
           RETURN 'ALTER TABLE myTable ADD COLUMN newCol1 TEXT,ADD COLUMN newCol2 INT;'
          */
@@ -530,6 +528,58 @@ var QueryBuilder = (function () {
             }
 
             query = query.slice(0, -1) + ';';
+
+            //console.log(query);
+            return query;
+        }
+
+        /** Generates the SQL query string to update the values of columns in some table in the database.
+          queryParams :: {} ::
+         |--> .tableName  :: string :: REQUIRED :: SQL UPDATE (Database table name)
+         |--> .values     :: [[]]   :: REQUIRED :: SQL SET
+         |--> .where      :: string :: OPTIONAL :: SQL WHERE
+          let newValues = [
+            ['col1', 'W'],
+            ['col2', 909],
+         ]
+          let queryParams = {
+            tableName: 'myTable',
+            values: newValues,
+            where: 'id=2'
+         }
+          RETURN 'UPDATE myTable SET col1="W",col2=909 WHERE id=2;'
+         */
+    }, {
+        key: 'update',
+        value: function update(queryParams) {
+            var query = 'UPDATE ' + queryParams.tableName + ' SET ';
+            var _iteratorNormalCompletion8 = true;
+            var _didIteratorError8 = false;
+            var _iteratorError8 = undefined;
+
+            try {
+                for (var _iterator8 = queryParams.values[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+                    var value = _step8.value;
+
+                    query += value[0] + '=' + (typeof value[1] == 'string' ? '"' + value[1] + '"' : value[1]) + ',';
+                }
+            } catch (err) {
+                _didIteratorError8 = true;
+                _iteratorError8 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion8 && _iterator8['return']) {
+                        _iterator8['return']();
+                    }
+                } finally {
+                    if (_didIteratorError8) {
+                        throw _iteratorError8;
+                    }
+                }
+            }
+
+            query = query.slice(0, -1);
+            query += ' WHERE ' + queryParams.where + ';';
 
             //console.log(query);
             return query;
