@@ -239,9 +239,9 @@ export class QueryBuilder {
 
      let tableName = 'myTable';
      let columns = [
-        ['id', Geotabuladb.PK],
-        ['col1', Geotabuladb.STRING],
-        ['col2', Geotabuladb.INT],
+        ['id', PK],
+        ['col1', STRING],
+        ['col2', INT],
      ]
 
      RETURN 'CREATE TABLE myTable(id SERIAL PRIMARY KEY, col1 TEXT, col2 INT);'
@@ -322,6 +322,30 @@ export class QueryBuilder {
         query = query.slice(0,-1);
         query += ');';
 
+        return query;
+    }
+
+    /** Generates the SQL query string to add columns to an existing table in the database.
+
+     tableName :: string
+     columns   :: [[]]
+
+     let tableName = 'myTable';
+     let columns = [
+     ['newCol1', STRING],
+     ['newCol2', INT],
+     ]
+
+     RETURN 'ALTER TABLE myTable ADD COLUMN newCol1 TEXT,ADD COLUMN newCol2 INT;'
+     */
+    static addColumns(tableName, columns) {
+        let query = 'ALTER TABLE '+tableName+' ';
+        for (let column of columns) {
+            query += 'ADD COLUMN '+column[0]+' '+column[1]+','
+        }
+        query = query.slice(0,-1)+';';
+
+        //console.log(query);
         return query;
     }
 }

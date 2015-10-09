@@ -188,9 +188,9 @@ Generates the SQL query string to create a table in the database.
 ```javascript
 let tableName = 'myTable';
 let columns = [
-    ['id', Geotabuladb.PK],
-    ['col1', Geotabuladb.STRING],
-    ['col2', Geotabuladb.INT]
+    ['id', geoHelpers.PK],
+    ['col1', geoHelpers.STRING],
+    ['col2', geoHelpers.INT]
 ];
 
 console.log( geoHelpers.QueryBuilder.createTable(tableName, columns) );
@@ -238,4 +238,18 @@ let queryParams = {
 console.log( geoHelpers.QueryBuilder.copyTable(outTable, queryParams) );
 
      "CREATE TABLE myNewTable AS(SELECT col2 FROM myTable WHERE col1 = 'ML*');"
+```
+
+### addColumns
+Generates the SQL query string to add columns to an existing table in the database.
+```javascript
+let tableName = 'myTable';
+let columns = [
+    ['newCol1', geoHelpers.STRING],
+    ['newCol2', geoHelpers.INT]
+];
+
+console.log( geoHelpers.QueryBuilder.addColumns(tableName, columns) );
+
+    'ALTER TABLE myTable ADD COLUMN newCol1 TEXT,ADD COLUMN newCol2 INT;'
 ```
