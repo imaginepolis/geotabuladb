@@ -472,9 +472,9 @@ var QueryBuilder = (function () {
          |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
           let newTable = 'myNewTable';
          let queryParams = {
-            tableName = 'myTable',
-            properties = ['col2'],
-            where = "col1 = 'ML*'"
+            tableName: 'myTable',
+            properties: ['col2'],
+            where: "col1 = 'ML*'"
          };
           RETURN "CREATE TABLE myNewTable AS(SELECT col2 FROM myTable WHERE col1 = 'ML*');"
           */

@@ -230,9 +230,9 @@ Generates the SQL query string to create a new table in the database from the re
 ```javascript
 let outTable = 'myNewTable';
 let queryParams = {
-    tableName = 'myTable',
-    properties = ['col2'],
-    where = "col1 = 'ML*'"
+    tableName: 'myTable',
+    properties: ['col2'],
+    where: "col1 = 'ML*'"
 };
 
 console.log( geoHelpers.QueryBuilder.copyTable(outTable, queryParams) );
