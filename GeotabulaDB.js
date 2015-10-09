@@ -249,7 +249,7 @@ export class QueryBuilder {
     static createTable(tableName, columns) {
         let query = 'CREATE TABLE '+tableName+'(';
         for (let column of columns) {
-            query += column[0]+' '+column[1]+','
+            query += column[0]+' '+column[1]+',';
         }
         query = query.slice(0,-1)+');';
 
@@ -296,9 +296,7 @@ export class QueryBuilder {
 
      outTable    :: string
 
-     queryParams ::
-     |--> string :: Plain SQL query to be executed in the database
-     |--> {}     ::
+     queryParams :: {} ::
      |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
      |--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
      |--> .where      :: string :: OPTIONAL :: SQL WHERE
@@ -332,8 +330,8 @@ export class QueryBuilder {
 
      let tableName = 'myTable';
      let columns = [
-     ['newCol1', STRING],
-     ['newCol2', INT],
+         ['newCol1', STRING],
+         ['newCol2', INT],
      ]
 
      RETURN 'ALTER TABLE myTable ADD COLUMN newCol1 TEXT,ADD COLUMN newCol2 INT;'
@@ -341,9 +339,41 @@ export class QueryBuilder {
     static addColumns(tableName, columns) {
         let query = 'ALTER TABLE '+tableName+' ';
         for (let column of columns) {
-            query += 'ADD COLUMN '+column[0]+' '+column[1]+','
+            query += 'ADD COLUMN '+column[0]+' '+column[1]+',';
         }
         query = query.slice(0,-1)+';';
+
+        //console.log(query);
+        return query;
+    }
+
+    /** Generates the SQL query string to update the values of columns in some table in the database.
+
+     queryParams :: {} ::
+     |--> .tableName  :: string :: REQUIRED :: SQL UPDATE (Database table name)
+     |--> .values     :: [[]]   :: REQUIRED :: SQL SET
+     |--> .where      :: string :: OPTIONAL :: SQL WHERE
+
+     let newValues = [
+        ['col1', 'W'],
+        ['col2', 909],
+     ]
+
+     let queryParams = {
+        tableName: 'myTable',
+        values: newValues,
+        where: 'id=2'
+     }
+
+     RETURN 'UPDATE myTable SET col1="W",col2=909 WHERE id=2;'
+     */
+    static update(queryParams) {
+        let query = 'UPDATE '+queryParams.tableName+' SET ';
+        for (let value of queryParams.values) {
+            query += value[0]+'='+(typeof value[1] == 'string' ? '"'+value[1]+'"' : value[1])+',';
+        }
+        query = query.slice(0,-1);
+        query += ' WHERE '+queryParams.where+';';
 
         //console.log(query);
         return query;

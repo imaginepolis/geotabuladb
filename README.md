@@ -216,16 +216,14 @@ console.log( geoHelpers.QueryBuilder.insertInto(tableName, columns, values) );
 ### copyTable
 Generates the SQL query string to create a new table in the database from the results of a query.
 ```
- outTable    :: string
+outTable    :: string
 
- queryParams ::
- |--> string :: Plain SQL query to be executed in the database
- |--> {}     ::
- |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
- |--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
- |--> .where      :: string :: OPTIONAL :: SQL WHERE
- |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
- |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
+queryParams :: {} ::
+|--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+|--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+|--> .where      :: string :: OPTIONAL :: SQL WHERE
+|--> .limit      :: string :: OPTIONAL :: SQL LIMIT
+|--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
 ```
 ```javascript
 let outTable = 'myNewTable';
@@ -252,4 +250,29 @@ let columns = [
 console.log( geoHelpers.QueryBuilder.addColumns(tableName, columns) );
 
     'ALTER TABLE myTable ADD COLUMN newCol1 TEXT,ADD COLUMN newCol2 INT;'
+```
+
+### update
+Generates the SQL query string to update the values of columns in some table in the database.
+```
+queryParams :: {} ::
+|--> .tableName  :: string :: REQUIRED :: SQL UPDATE (Database table name)
+|--> .values     :: [[]]   :: REQUIRED :: SQL SET
+|--> .where      :: string :: OPTIONAL :: SQL WHERE
+```
+```javascript
+let newValues = [
+    ['col1', 'W'],
+    ['col2', 909],
+];
+
+let queryParams = {
+    tableName: 'myTable',
+    values: newValues,
+    where: 'id=2'
+};
+
+console.log( geoHelpers.QueryBuilder.update(queryParams) );
+
+    'UPDATE myTable SET col1="W",col2=909 WHERE id=2;'
 ```
