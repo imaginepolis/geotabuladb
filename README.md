@@ -212,6 +212,32 @@ console.log( geoHelpers.QueryBuilder.insertInto(tableName, columns, values) );
 
      'INSERT INTO myTable(col1,col2) VALUES (ML,001),(ML,725);'
 ```
+### insertIntoSelect
+Generates the SQL query string to insert rows in a table from the results of a SELECT statement.
+```
+tableName    :: string
+columns   :: []
+
+queryParams :: {} ::
+|--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+|--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+|--> .where      :: string :: OPTIONAL :: SQL WHERE
+|--> .limit      :: string :: OPTIONAL :: SQL LIMIT
+|--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
+```
+```javascript
+let table = 'otherTable';
+let columns = ['otCol1', 'otCol2'];
+let queryParams = {
+    tableName: 'myTable',
+    properties: ['col1','col2'],
+    where: "col1 = 'ML*'"
+};
+
+console.log( geoHelpers.QueryBuilder.insertIntoSelect(table, columns, queryParams) );
+
+    "INSERT INTO otherTable(otCol1,otCol2) SELECT col1,col2 FROM myTable WHERE col1 = 'ML*';"
+```
 
 ### copyTable
 Generates the SQL query string to create a new table in the database from the results of a query.

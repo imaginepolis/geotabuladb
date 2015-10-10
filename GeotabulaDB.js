@@ -292,7 +292,43 @@ export class QueryBuilder {
         return query;
     }
 
-    /**  Creates a new table from a query.
+    /**  Generates the SQL query string to insert rows in a table from the results of a SELECT statement.
+
+     tableName    :: string
+     columns   :: []
+
+     queryParams :: {} ::
+     |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+     |--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+     |--> .where      :: string :: OPTIONAL :: SQL WHERE
+     |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
+     |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
+
+     let table = 'otherTable';
+     let columns = ['otCol1', 'otCol2'];
+     let queryParams = {
+        tableName: 'myTable',
+        properties: ['col1','col2'],
+        where: "col1 = 'ML*'"
+     };
+
+     RETURN "INSERT INTO otherTable(otCol1,otCol2) SELECT col1,col2 FROM myTable WHERE col1 = 'ML*';"
+
+     */
+
+    static insertIntoSelect(tableName, columns, queryParams) {
+        let query = 'INSERT INTO '+tableName+'(';
+        for (let column of columns) {
+            query += column+',';
+        }
+        query = query.slice(0,-1)+') ';
+
+        query += ParserHelper.genSimpleQueryString(queryParams);
+
+        return query;
+    }
+
+    /**  Generates the SQL query string to create a new table from a SELECT query.
 
      outTable    :: string
 

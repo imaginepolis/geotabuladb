@@ -460,7 +460,62 @@ var QueryBuilder = (function () {
             return query;
         }
 
-        /**  Creates a new table from a query.
+        /**  Generates the SQL query string to insert rows in a table from the results of a SELECT statement.
+          tableName    :: string
+         columns   :: []
+          queryParams :: {} ::
+         |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
+         |--> .tableName  :: string :: REQUIRED :: SQL FROM (Database table name)
+         |--> .where      :: string :: OPTIONAL :: SQL WHERE
+         |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
+         |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
+          let table = 'otherTable';
+         let columns = ['otCol1', 'otCol2'];
+         let queryParams = {
+            tableName: 'myTable',
+            properties: ['col1','col2'],
+            where: "col1 = 'ML*'"
+         };
+          RETURN "INSERT INTO otherTable(otCol1,otCol2) SELECT col1,col2 FROM myTable WHERE col1 = 'ML*';"
+          */
+
+    }, {
+        key: 'insertIntoSelect',
+        value: function insertIntoSelect(tableName, columns, queryParams) {
+            var query = 'INSERT INTO ' + tableName + '(';
+            var _iteratorNormalCompletion7 = true;
+            var _didIteratorError7 = false;
+            var _iteratorError7 = undefined;
+
+            try {
+                for (var _iterator7 = columns[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                    var column = _step7.value;
+
+                    query += column + ',';
+                }
+            } catch (err) {
+                _didIteratorError7 = true;
+                _iteratorError7 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion7 && _iterator7['return']) {
+                        _iterator7['return']();
+                    }
+                } finally {
+                    if (_didIteratorError7) {
+                        throw _iteratorError7;
+                    }
+                }
+            }
+
+            query = query.slice(0, -1) + ') ';
+
+            query += ParserHelper.genSimpleQueryString(queryParams);
+
+            return query;
+        }
+
+        /**  Generates the SQL query string to create a new table from a SELECT query.
           outTable    :: string
           queryParams :: {} ::
          |--> .properties :: []     :: OPTIONAL :: SQL SELECT (Columns to be retrieved)
@@ -502,27 +557,27 @@ var QueryBuilder = (function () {
         key: 'addColumns',
         value: function addColumns(tableName, columns) {
             var query = 'ALTER TABLE ' + tableName + ' ';
-            var _iteratorNormalCompletion7 = true;
-            var _didIteratorError7 = false;
-            var _iteratorError7 = undefined;
+            var _iteratorNormalCompletion8 = true;
+            var _didIteratorError8 = false;
+            var _iteratorError8 = undefined;
 
             try {
-                for (var _iterator7 = columns[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-                    var column = _step7.value;
+                for (var _iterator8 = columns[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+                    var column = _step8.value;
 
                     query += 'ADD COLUMN ' + column[0] + ' ' + column[1] + ',';
                 }
             } catch (err) {
-                _didIteratorError7 = true;
-                _iteratorError7 = err;
+                _didIteratorError8 = true;
+                _iteratorError8 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion7 && _iterator7['return']) {
-                        _iterator7['return']();
+                    if (!_iteratorNormalCompletion8 && _iterator8['return']) {
+                        _iterator8['return']();
                     }
                 } finally {
-                    if (_didIteratorError7) {
-                        throw _iteratorError7;
+                    if (_didIteratorError8) {
+                        throw _iteratorError8;
                     }
                 }
             }
@@ -553,27 +608,27 @@ var QueryBuilder = (function () {
         key: 'update',
         value: function update(queryParams) {
             var query = 'UPDATE ' + queryParams.tableName + ' SET ';
-            var _iteratorNormalCompletion8 = true;
-            var _didIteratorError8 = false;
-            var _iteratorError8 = undefined;
+            var _iteratorNormalCompletion9 = true;
+            var _didIteratorError9 = false;
+            var _iteratorError9 = undefined;
 
             try {
-                for (var _iterator8 = queryParams.values[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-                    var value = _step8.value;
+                for (var _iterator9 = queryParams.values[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+                    var value = _step9.value;
 
                     query += value[0] + '=' + (typeof value[1] == 'string' ? '"' + value[1] + '"' : value[1]) + ',';
                 }
             } catch (err) {
-                _didIteratorError8 = true;
-                _iteratorError8 = err;
+                _didIteratorError9 = true;
+                _iteratorError9 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion8 && _iterator8['return']) {
-                        _iterator8['return']();
+                    if (!_iteratorNormalCompletion9 && _iterator9['return']) {
+                        _iterator9['return']();
                     }
                 } finally {
-                    if (_didIteratorError8) {
-                        throw _iteratorError8;
+                    if (_didIteratorError9) {
+                        throw _iteratorError9;
                     }
                 }
             }
