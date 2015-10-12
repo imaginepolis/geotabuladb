@@ -73,7 +73,7 @@ export default class GeotabulaDB {
      */
     query(queryParams, callback) {
         // ToDo implement code injection check...
-        let query = typeof queryParams == 'string' ? queryParams : ParserHelper.genSimpleQueryString(queryParams);
+        let query = typeof queryParams == 'string' ? queryParams : QueryBuilder.select(queryParams);
         let hash = GeotabulaDB.genHash(query+Math.random());
 
         pg.connect(this._connString, function(err, client, done) {
@@ -107,7 +107,7 @@ export default class GeotabulaDB {
      |--> hash   :: string  :: queryHash
      */
     geoQuery(queryParams, callback) {
-        let query = ParserHelper.genGeoQueryString(queryParams);
+        let query = QueryBuilder.geoQuery(queryParams);
         let hash = GeotabulaDB.genHash(query+Math.random());
         //console.log('query hash: '+hash);
 
@@ -147,7 +147,7 @@ export default class GeotabulaDB {
      |--> hash   :: string  :: queryHash
      */
     spatialObjectsAtRadius (queryParams, callback) {
-        let query = ParserHelper.genSpObjsAtRadiusString(queryParams);
+        let query = QueryBuilder.spObjsAtRadius(queryParams);
         let hash = GeotabulaDB.genHash(query+Math.random());
         //console.log('query hash: '+hash);
 
@@ -304,6 +304,13 @@ export class QueryBuilder {
      |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
      |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
 
+     |--> .geometry   :: string :: OPTIONAL :: WKT (Geometry's column name)
+     => WOULD trigger a geoQuery SELECT!
+
+     |--> .spObj      :: string :: OPTIONAL :: Spatial object geometry IN Extended Well-Known Text representation (EWKT)
+     |--> .radius     :: string :: OPTIONAL :: Radius to look at
+     => WOULD trigger a spObjsAtRadius SELECT!
+
      let table = 'otherTable';
      let columns = ['otCol1', 'otCol2'];
      let queryParams = {
@@ -323,7 +330,12 @@ export class QueryBuilder {
         }
         query = query.slice(0,-1)+') ';
 
-        query += ParserHelper.genSimpleQueryString(queryParams);
+        if (queryParams.radius != undefined)
+            query += QueryBuilder.spObjsAtRadius(queryParams);
+        else if (queryParams.geometry != undefined)
+            query += QueryBuilder.geoQuery(queryParams);
+        else
+            query += QueryBuilder.select(queryParams);
 
         return query;
     }
@@ -352,7 +364,7 @@ export class QueryBuilder {
     static copyTable(outTable, queryParams) {
         let query = 'CREATE TABLE '+outTable+' AS(';
 
-        query += ParserHelper.genSimpleQueryString(queryParams);
+        query += QueryBuilder.select(queryParams);
         query = query.slice(0,-1);
         query += ');';
 
@@ -411,37 +423,24 @@ export class QueryBuilder {
         query = query.slice(0,-1);
         query += ' WHERE '+queryParams.where+';';
 
-        //console.log(query);
         return query;
     }
-}
 
-// ParserHelper --------------------------------------------------------------------------------------------------------
-
-class ParserHelper {
-    static genSimpleQueryString(queryParams) {
-        let log = '.genSimpleQueryString()';
-
+    static select(queryParams) {
         let query = ParserHelper.genSelectString(queryParams) + ParserHelper.genFromString(queryParams);
 
-        //console.log(logString+log+logOK+query);
         return query;
     }
 
-    static genGeoQueryString(queryParams) {
-        let log = '.genGeoQueryString()';
-
+    static geoQuery(queryParams) {
         let query = ParserHelper.genSelectString(queryParams);
         query += ', ST_AsText('+queryParams.geometry+') AS wkt';
         query += ParserHelper.genFromString(queryParams);
 
-        //console.log(logString+log+logOK+query);
         return query;
     }
 
-    static genSpObjsAtRadiusString(queryParams) {
-        let log = '.genSpObjsAtRadiusString()';
-
+    static spObjsAtRadius(queryParams) {
         let query = ParserHelper.genSelectString(queryParams);
         query += ', ST_AsText('+queryParams.geometry+') AS wkt';
         query += ' FROM ' + queryParams.tableName;
@@ -453,10 +452,13 @@ class ParserHelper {
 
         query += ParserHelper.genLimitGroupByString(queryParams);
 
-        //console.log(logString+log+logOK+query);
         return query;
     }
+}
 
+// ParserHelper --------------------------------------------------------------------------------------------------------
+
+class ParserHelper {
     static genSelectString(queryParams) {
         let columns = [];
         if (queryParams.properties == undefined || queryParams.properties == 'all') {

@@ -224,6 +224,13 @@ queryParams :: {} ::
 |--> .where      :: string :: OPTIONAL :: SQL WHERE
 |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
 |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
+
+|--> .geometry   :: string :: OPTIONAL :: WKT (Geometry's column name)
+=> WOULD trigger a geoQuery SELECT!
+
+|--> .spObj      :: string :: OPTIONAL :: Spatial object geometry IN Extended Well-Known Text representation (EWKT)
+|--> .radius     :: string :: OPTIONAL :: Radius to look at
+=> WOULD trigger a spObjsAtRadius SELECT!
 ```
 ```javascript
 let table = 'otherTable';

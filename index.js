@@ -117,7 +117,7 @@ var GeotabulaDB = (function () {
         key: 'query',
         value: function query(queryParams, callback) {
             // ToDo implement code injection check...
-            var query = typeof queryParams == 'string' ? queryParams : ParserHelper.genSimpleQueryString(queryParams);
+            var query = typeof queryParams == 'string' ? queryParams : QueryBuilder.select(queryParams);
             var hash = GeotabulaDB.genHash(query + Math.random());
 
             pg.connect(this._connString, function (err, client, done) {
@@ -150,7 +150,7 @@ var GeotabulaDB = (function () {
     }, {
         key: 'geoQuery',
         value: function geoQuery(queryParams, callback) {
-            var query = ParserHelper.genGeoQueryString(queryParams);
+            var query = QueryBuilder.geoQuery(queryParams);
             var hash = GeotabulaDB.genHash(query + Math.random());
             //console.log('query hash: '+hash);
 
@@ -189,7 +189,7 @@ var GeotabulaDB = (function () {
     }, {
         key: 'spatialObjectsAtRadius',
         value: function spatialObjectsAtRadius(queryParams, callback) {
-            var query = ParserHelper.genSpObjsAtRadiusString(queryParams);
+            var query = QueryBuilder.spObjsAtRadius(queryParams);
             var hash = GeotabulaDB.genHash(query + Math.random());
             //console.log('query hash: '+hash);
 
@@ -469,6 +469,11 @@ var QueryBuilder = (function () {
          |--> .where      :: string :: OPTIONAL :: SQL WHERE
          |--> .limit      :: string :: OPTIONAL :: SQL LIMIT
          |--> .groupby    :: string :: OPTIONAL :: SQL GROUP BY
+          |--> .geometry   :: string :: OPTIONAL :: WKT (Geometry's column name)
+         => WOULD trigger a geoQuery SELECT!
+          |--> .spObj      :: string :: OPTIONAL :: Spatial object geometry IN Extended Well-Known Text representation (EWKT)
+         |--> .radius     :: string :: OPTIONAL :: Radius to look at
+         => WOULD trigger a spObjsAtRadius SELECT!
           let table = 'otherTable';
          let columns = ['otCol1', 'otCol2'];
          let queryParams = {
@@ -510,7 +515,7 @@ var QueryBuilder = (function () {
 
             query = query.slice(0, -1) + ') ';
 
-            query += ParserHelper.genSimpleQueryString(queryParams);
+            if (queryParams.radius != undefined) query += QueryBuilder.spObjsAtRadius(queryParams);else if (queryParams.geometry != undefined) query += QueryBuilder.geoQuery(queryParams);else query += QueryBuilder.select(queryParams);
 
             return query;
         }
@@ -536,7 +541,7 @@ var QueryBuilder = (function () {
         value: function copyTable(outTable, queryParams) {
             var query = 'CREATE TABLE ' + outTable + ' AS(';
 
-            query += ParserHelper.genSimpleQueryString(queryParams);
+            query += QueryBuilder.select(queryParams);
             query = query.slice(0, -1);
             query += ');';
 
@@ -636,7 +641,38 @@ var QueryBuilder = (function () {
             query = query.slice(0, -1);
             query += ' WHERE ' + queryParams.where + ';';
 
-            //console.log(query);
+            return query;
+        }
+    }, {
+        key: 'select',
+        value: function select(queryParams) {
+            var query = ParserHelper.genSelectString(queryParams) + ParserHelper.genFromString(queryParams);
+
+            return query;
+        }
+    }, {
+        key: 'geoQuery',
+        value: function geoQuery(queryParams) {
+            var query = ParserHelper.genSelectString(queryParams);
+            query += ', ST_AsText(' + queryParams.geometry + ') AS wkt';
+            query += ParserHelper.genFromString(queryParams);
+
+            return query;
+        }
+    }, {
+        key: 'spObjsAtRadius',
+        value: function spObjsAtRadius(queryParams) {
+            var query = ParserHelper.genSelectString(queryParams);
+            query += ', ST_AsText(' + queryParams.geometry + ') AS wkt';
+            query += ' FROM ' + queryParams.tableName;
+            query += ' WHERE ST_DWithin(' + queryParams.geometry + ", ST_GeomFromEWKT('" + queryParams.spObj + "')," + queryParams.radius + ')';
+
+            if (queryParams.where != undefined) {
+                query += ' AND (' + queryParams.where + ')';
+            }
+
+            query += ParserHelper.genLimitGroupByString(queryParams);
+
             return query;
         }
     }]);
@@ -652,47 +688,6 @@ var ParserHelper = (function () {
     }
 
     _createClass(ParserHelper, null, [{
-        key: 'genSimpleQueryString',
-        value: function genSimpleQueryString(queryParams) {
-            var log = '.genSimpleQueryString()';
-
-            var query = ParserHelper.genSelectString(queryParams) + ParserHelper.genFromString(queryParams);
-
-            //console.log(logString+log+logOK+query);
-            return query;
-        }
-    }, {
-        key: 'genGeoQueryString',
-        value: function genGeoQueryString(queryParams) {
-            var log = '.genGeoQueryString()';
-
-            var query = ParserHelper.genSelectString(queryParams);
-            query += ', ST_AsText(' + queryParams.geometry + ') AS wkt';
-            query += ParserHelper.genFromString(queryParams);
-
-            //console.log(logString+log+logOK+query);
-            return query;
-        }
-    }, {
-        key: 'genSpObjsAtRadiusString',
-        value: function genSpObjsAtRadiusString(queryParams) {
-            var log = '.genSpObjsAtRadiusString()';
-
-            var query = ParserHelper.genSelectString(queryParams);
-            query += ', ST_AsText(' + queryParams.geometry + ') AS wkt';
-            query += ' FROM ' + queryParams.tableName;
-            query += ' WHERE ST_DWithin(' + queryParams.geometry + ", ST_GeomFromEWKT('" + queryParams.spObj + "')," + queryParams.radius + ')';
-
-            if (queryParams.where != undefined) {
-                query += ' AND (' + queryParams.where + ')';
-            }
-
-            query += ParserHelper.genLimitGroupByString(queryParams);
-
-            //console.log(logString+log+logOK+query);
-            return query;
-        }
-    }, {
         key: 'genSelectString',
         value: function genSelectString(queryParams) {
             var columns = [];
