@@ -150,7 +150,7 @@ var GeotabulaDB = (function () {
     }, {
         key: 'geoQuery',
         value: function geoQuery(queryParams, callback) {
-            var query = QueryBuilder.geoQuery(queryParams);
+            var query = QueryBuilder.geoQuery(queryParams, true);
             var hash = GeotabulaDB.genHash(query + Math.random());
             //console.log('query hash: '+hash);
 
@@ -189,7 +189,7 @@ var GeotabulaDB = (function () {
     }, {
         key: 'spatialObjectsAtRadius',
         value: function spatialObjectsAtRadius(queryParams, callback) {
-            var query = QueryBuilder.spObjsAtRadius(queryParams);
+            var query = QueryBuilder.spObjsAtRadius(queryParams, true);
             var hash = GeotabulaDB.genHash(query + Math.random());
             //console.log('query hash: '+hash);
 
@@ -655,8 +655,12 @@ var QueryBuilder = (function () {
     }, {
         key: 'geoQuery',
         value: function geoQuery(queryParams) {
+            var includeGeometry = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+
             var query = ParserHelper.genSelectString(queryParams);
-            query += ', ST_AsText(' + queryParams.geometry + ') AS ' + queryParams.geometry;
+
+            if (includeGeometry) query += ', ST_AsText(' + queryParams.geometry + ') AS ' + queryParams.geometry;
+
             query += ParserHelper.genFromString(queryParams);
 
             return query;
@@ -664,8 +668,12 @@ var QueryBuilder = (function () {
     }, {
         key: 'spObjsAtRadius',
         value: function spObjsAtRadius(queryParams) {
+            var includeGeometry = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+
             var query = ParserHelper.genSelectString(queryParams);
-            query += ', ST_AsText(' + queryParams.geometry + ') AS ' + queryParams.geometry;
+
+            if (includeGeometry) query += ', ST_AsText(' + queryParams.geometry + ') AS ' + queryParams.geometry;
+
             query += ' FROM ' + queryParams.tableName;
             query += ' WHERE ST_DWithin(' + queryParams.geometry + ", ST_GeomFromEWKT('" + queryParams.spObj + "')," + queryParams.radius + ')';
 

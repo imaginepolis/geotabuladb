@@ -107,7 +107,7 @@ export default class GeotabulaDB {
      |--> hash   :: string  :: queryHash
      */
     geoQuery(queryParams, callback) {
-        let query = QueryBuilder.geoQuery(queryParams);
+        let query = QueryBuilder.geoQuery(queryParams,true);
         let hash = GeotabulaDB.genHash(query+Math.random());
         //console.log('query hash: '+hash);
 
@@ -147,7 +147,7 @@ export default class GeotabulaDB {
      |--> hash   :: string  :: queryHash
      */
     spatialObjectsAtRadius (queryParams, callback) {
-        let query = QueryBuilder.spObjsAtRadius(queryParams);
+        let query = QueryBuilder.spObjsAtRadius(queryParams,true);
         let hash = GeotabulaDB.genHash(query+Math.random());
         //console.log('query hash: '+hash);
 
@@ -214,7 +214,6 @@ export default class GeotabulaDB {
 }
 
 // QueryBuilder --------------------------------------------------------------------------------------------------------
-
 export const PK = ' SERIAL PRIMARY KEY';
 export const STRING = ' TEXT';
 export const INT = ' INT';
@@ -434,17 +433,23 @@ export class QueryBuilder {
         return query;
     }
 
-    static geoQuery(queryParams) {
+    static geoQuery(queryParams, includeGeometry = false) {
         let query = ParserHelper.genSelectString(queryParams);
-        query += ', ST_AsText('+queryParams.geometry+') AS '+queryParams.geometry;
+
+        if (includeGeometry)
+            query += ', ST_AsText('+queryParams.geometry+') AS '+queryParams.geometry;
+
         query += ParserHelper.genFromString(queryParams);
 
         return query;
     }
 
-    static spObjsAtRadius(queryParams) {
+    static spObjsAtRadius(queryParams, includeGeometry = false) {
         let query = ParserHelper.genSelectString(queryParams);
-        query += ', ST_AsText('+queryParams.geometry+') AS '+queryParams.geometry;
+
+        if (includeGeometry)
+            query += ', ST_AsText('+queryParams.geometry+') AS '+queryParams.geometry;
+
         query += ' FROM ' + queryParams.tableName;
         query += ' WHERE ST_DWithin('+queryParams.geometry+", ST_GeomFromEWKT('"+queryParams.spObj+"'),"+queryParams.radius+')';
 
