@@ -230,7 +230,7 @@ var GeotabulaDB = (function () {
             var columns = [];
             for (var column in result.fields) {
                 var _name = result.fields[column].name;
-                if (_name != 'wkt' && _name != geometryColumnName) {
+                if (_name != geometryColumnName) {
                     columns.push(_name);
                 }
             }
@@ -267,7 +267,7 @@ var GeotabulaDB = (function () {
                     }
                 }
 
-                var geometry = wkt.parse(result.rows[row]['wkt']);
+                var geometry = wkt.parse(result.rows[row][geometryColumnName]);
                 var feature = {
                     'type': 'Feature',
                     'geometry': geometry,
@@ -488,6 +488,7 @@ var QueryBuilder = (function () {
         key: 'insertIntoSelect',
         value: function insertIntoSelect(tableName, columns, queryParams) {
             var query = 'INSERT INTO ' + tableName + '(';
+            console.log(query);
             var _iteratorNormalCompletion7 = true;
             var _didIteratorError7 = false;
             var _iteratorError7 = undefined;
@@ -513,8 +514,9 @@ var QueryBuilder = (function () {
                 }
             }
 
+            console.log(query);
             query = query.slice(0, -1) + ') ';
-
+            console.log(query);
             if (queryParams.radius != undefined) query += QueryBuilder.spObjsAtRadius(queryParams);else if (queryParams.geometry != undefined) query += QueryBuilder.geoQuery(queryParams);else query += QueryBuilder.select(queryParams);
 
             return query;
@@ -654,7 +656,7 @@ var QueryBuilder = (function () {
         key: 'geoQuery',
         value: function geoQuery(queryParams) {
             var query = ParserHelper.genSelectString(queryParams);
-            query += ', ST_AsText(' + queryParams.geometry + ') AS wkt';
+            query += ', ST_AsText(' + queryParams.geometry + ') AS ' + queryParams.geometry;
             query += ParserHelper.genFromString(queryParams);
 
             return query;
@@ -663,7 +665,7 @@ var QueryBuilder = (function () {
         key: 'spObjsAtRadius',
         value: function spObjsAtRadius(queryParams) {
             var query = ParserHelper.genSelectString(queryParams);
-            query += ', ST_AsText(' + queryParams.geometry + ') AS wkt';
+            query += ', ST_AsText(' + queryParams.geometry + ') AS ' + queryParams.geometry;
             query += ' FROM ' + queryParams.tableName;
             query += ' WHERE ST_DWithin(' + queryParams.geometry + ", ST_GeomFromEWKT('" + queryParams.spObj + "')," + queryParams.radius + ')';
 

@@ -185,7 +185,7 @@ export default class GeotabulaDB {
         let columns = [];
         for (let column in result.fields) {
             let name = result.fields[column].name;
-            if (name != 'wkt' && name != geometryColumnName) {
+            if (name != geometryColumnName) {
                 columns.push(name);
             }
         }
@@ -200,7 +200,7 @@ export default class GeotabulaDB {
             for (let column of columns) {
                 properties[column] = result.rows[row][column];
             }
-            let geometry = wkt.parse(result.rows[row]['wkt']);
+            let geometry = wkt.parse(result.rows[row][geometryColumnName]);
             let feature = {
                 'type': 'Feature',
                 'geometry': geometry,
@@ -325,11 +325,13 @@ export class QueryBuilder {
 
     static insertIntoSelect(tableName, columns, queryParams) {
         let query = 'INSERT INTO '+tableName+'(';
+        console.log(query);
         for (let column of columns) {
             query += column+',';
         }
+        console.log(query);
         query = query.slice(0,-1)+') ';
-
+        console.log(query);
         if (queryParams.radius != undefined)
             query += QueryBuilder.spObjsAtRadius(queryParams);
         else if (queryParams.geometry != undefined)
@@ -434,7 +436,7 @@ export class QueryBuilder {
 
     static geoQuery(queryParams) {
         let query = ParserHelper.genSelectString(queryParams);
-        query += ', ST_AsText('+queryParams.geometry+') AS wkt';
+        query += ', ST_AsText('+queryParams.geometry+') AS '+queryParams.geometry;
         query += ParserHelper.genFromString(queryParams);
 
         return query;
@@ -442,7 +444,7 @@ export class QueryBuilder {
 
     static spObjsAtRadius(queryParams) {
         let query = ParserHelper.genSelectString(queryParams);
-        query += ', ST_AsText('+queryParams.geometry+') AS wkt';
+        query += ', ST_AsText('+queryParams.geometry+') AS '+queryParams.geometry;
         query += ' FROM ' + queryParams.tableName;
         query += ' WHERE ST_DWithin('+queryParams.geometry+", ST_GeomFromEWKT('"+queryParams.spObj+"'),"+queryParams.radius+')';
 
