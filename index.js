@@ -661,6 +661,107 @@ var getIntersectingSegments = function(queryParams, callback) {
 	}
 
 }
+
+
+
+var getElementsFromCircles = function(queryParams, callback) {
+	console.log("executing getElementsFromCircles ");
+	var geojson = {
+		"type" : "FeatureCollection",
+		"features" : []
+	};
+	var columns = [];
+	if (queryParams.properties.constructor === Array) {
+		columns = queryParams.properties;
+	}
+	if (credentials.type === 'postgis') {
+
+		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
+
+		var connection = new pg.Client(connectString);
+		connection.connect(function(err) {
+			if (err) {
+				return console.error('could not connect to postgres', err);
+			}
+
+			var query = 'SELECT *, ST_AsText(';
+			query += queryParams.geometry;
+
+			query += ') AS wkt FROM ' + queryParams.tableName;
+
+			if (queryParams.centers != undefined && queryParams.radii != undefined) {
+				//query += ' WHERE ST_Crosses(  ST_Buffer( ST_AsText(ST_SetSRID(ST_MakePoint(-74.04098510742188, 4.734516689109568)),4326), 500 ),'+ queryParams.geometry + ');';
+				//query += " WHERE ST_Crosses(  ST_Buffer( ST_GeomFromText('POINT(-74.04098510742188 4.734516689109568)', 4326), 500) ,"+ queryParams.geometry + ");";
+				query += " WHERE ST_Intersects( ST_Buffer( CAST( ST_SetSRID( ST_GeomFromText( 'POINT(" + queryParams.centers[0][0] + " " + queryParams.centers[0][1] + ")'), 4326) AS geography), "+ queryParams.radii[0]+"), ST_StartPoint(trajectory))";
+				query += "AND ST_Intersects( ST_Buffer( CAST( ST_SetSRID( ST_GeomFromText( 'POINT("+ queryParams.centers[1][0] +" "+ queryParams.centers[1][1] +")'), 4326) AS geography), " + queryParams.radii[1] + "), ST_EndPoint(trajectory));";
+				/*query += "WHERE ST_Crosses(  ST_Buffer( ST_GeomFromText() , r ), geom2 );
+				ST_GeomFromText( 'SRID=4326; " + queryParams.point + "'))*/
+			}
+
+
+			if (queryParams.limit != undefined) {
+				query += ' LIMIT ' + queryParams.limit;
+			}
+			console.log(query);
+
+			//query = "SELECT *, ST_AsText(trajectory) AS wkt FROM routes WHERE ST_Intersects( ST_Buffer( ST_GeomFromText('POINT(-74.04098510742188 4.734516689109568)', 4326), 0.000500), trajectory) LIMIT 10;";
+			//query = "SELECT *, ST_AsText(trajectory) AS wkt FROM routes WHERE ST_Intersects( ST_Buffer( CAST( ST_SetSRID( ST_GeomFromText( 'POINT(-74.04098510742188 4.734516689109568)'), 4326) AS geography), 500), trajectory) AND ST_Intersects( ST_Buffer( CAST( ST_SetSRID( ST_GeomFromText( 'POINT(-74.08973693847656 4.663687765941434)'), 4326) AS geography), 500), trajectory);";
+
+
+
+			connection.query(query, function(err, result) {
+				if (err) {
+					console.log('error')
+					console.log(err.stack);
+				}
+				//console.log(result);
+				if (result != undefined) {
+					if (queryParams.properties == 'all') {
+						for (field in result.fields) {
+							var name = result.fields[field].name;
+							if (name != queryParams.geometry && name != 'wkt')
+								columns.push(result.fields[field].name);
+						}
+					}
+
+					for (each in result.rows) {
+						var properties = {};
+						for (i in columns) {
+							var col = columns[i];
+							properties[col] = result.rows[each][col];
+						}
+						var Terraformer = require('terraformer');
+						var WKT = require('terraformer-wkt-parser');
+						var geometry = WKT.parse(result.rows[each].wkt);
+						var feature = {
+							"type" : "Feature",
+							"geometry" : geometry,
+							"properties" : properties
+						};
+						geojson.features.push(feature);
+					}
+				}
+				connection.end();
+				callback(geojson);
+				//console.log(data);
+				//callback(data);
+
+			});
+			/*connection.on('end', function(){
+			 client.end();
+			 });*/
+		});
+
+
+
+	} else {
+		throw "there is no valid db type. [type] = " + credentials.type;
+	}
+
+}
+
+
+
 /**
  * This method join two tables in a database, at least one of the tables has to have linestrings.
  * Output: Creates a geojson with segments of line.
@@ -1587,6 +1688,7 @@ module.exports = {
 	intersectRoadAndSegments : intersectRoadAndSegments,
 	getRoadVelocityFromRoutes : getRoadVelocityFromRoutes,
 	generateOD_MAtrix : generateOD_MAtrix,
+	getElementsFromCircles:getElementsFromCircles,
 	getIdZone : getIdZone,
 	getBuffer : getBuffer,
 	getDistance : getDistance,
