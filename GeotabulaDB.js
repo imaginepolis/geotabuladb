@@ -451,7 +451,7 @@ export class QueryBuilder {
             query += ', ST_AsText('+queryParams.geometry+') AS '+queryParams.geometry;
 
         query += ' FROM ' + queryParams.tableName;
-        query += ' WHERE ST_DWithin('+queryParams.geometry+", ST_GeomFromEWKT('"+queryParams.spObj+"'),"+queryParams.radius+')';
+        query += ' WHERE ST_DWithin('+queryParams.geometry+"::geography, ST_GeomFromEWKT('"+queryParams.spObj+"')::geography,"+queryParams.radius+')';
 
         if (queryParams.where != undefined) {
             query += ' AND ('+queryParams.where+')';
