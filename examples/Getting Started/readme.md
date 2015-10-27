@@ -23,7 +23,7 @@ export NODE_PATH='/usr/local/lib/node_modules'
 echo "export NODE_PATH='/usr/local/lib/node_modules'" >> ~/.bashrc
 ```
 ## Database
-For this example, we are going to use the barrios_catrastales shape available [here] (https://sites.google.com/site/seriescol/shapes). The file available in the [data](data) folder has been transformed to use the WGS84 coordinate system. The following steps show how import the shape file to the database:
+For this example, we are going to use the barrios_catrastales shape available [here](https://sites.google.com/site/seriescol/shapes). The file available in the [data](data) folder has been transformed to use the WGS84 coordinate system. The following steps show how import the shape file to the database:
 ```
 unzip barrios_catastrales_wgs84.zip
 shp2pgsql barrios_catastrales_wgs84.shp > barrios_catastrales.sql

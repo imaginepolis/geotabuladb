@@ -1,14 +1,16 @@
 // ------------------------------------------------------
 // Constants and Variables
 // ------------------------------------------------------
-import * as glbs from './client/modules/globals.js';     // Client-Server shared constants
-import * as geo from 'geotabuladb';
+import * as glbs from './client/modules/globals.js';    // Client-Server shared constants
+import Geotabuladb from '../../index.js';			    /** Database operation <-- IF cloning main geotabuladb git repo */
+//import Geotabuladb from 'geotabuladb';	            /** Database operation <-- IF using npm install in a new project */
 
-var clients = {};                                   // Dictionary to storage client's sessions
+var clients = {};                                   	// Dictionary to storage client's sessions
 
 // ------------------------------------------------------
 // Database
 // ------------------------------------------------------
+var geo = new Geotabuladb();
 geo.setCredentials({
 	type: 'postgis',
 	host: 'localhost',
@@ -26,7 +28,9 @@ var server = require('http').createServer(app);     // Web server
 
 app.use(express.static(__dirname + '/client/public'));     // Static folder
 app.get('/', function(req, res){
-	res.sendFile(__dirname + '/client/index.html'); 		// Web server root file
+    let path = __dirname + '/client/index.html';
+    console.log(path);
+	res.sendFile(path); 		// Web server root file
 });
 
 server.listen(8080, function(){ 					// Setting ip the server port...

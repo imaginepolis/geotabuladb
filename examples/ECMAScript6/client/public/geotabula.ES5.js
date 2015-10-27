@@ -3,15 +3,15 @@
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
 
-var _modulesGlobalsJs = require('modules/globals.js');
+var _modulesGlobalsJs = require('./modules/globals.js');
 
 var glbs = _interopRequireWildcard(_modulesGlobalsJs);
 
-var _modulesMapJs = require('modules/map.js');
+var _modulesMapJs = require('./modules/map.js');
 
 var map = _interopRequireWildcard(_modulesMapJs);
 
-var _modulesActionsJs = require('modules/actions.js');
+var _modulesActionsJs = require('./modules/actions.js');
 
 var actions = _interopRequireWildcard(_modulesActionsJs);
 
@@ -26,20 +26,20 @@ function init() {
 window.onload = init;
 actions.init();
 
-},{"modules/actions.js":2,"modules/globals.js":3,"modules/map.js":4}],2:[function(require,module,exports){
+},{"./modules/actions.js":2,"./modules/globals.js":3,"./modules/map.js":4}],2:[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
 
-var _modulesGlobalsJs = require('modules/globals.js');
+var _globalsJs = require('./globals.js');
 
-var glbs = _interopRequireWildcard(_modulesGlobalsJs);
+var glbs = _interopRequireWildcard(_globalsJs);
 
-var _modulesMapJs = require('modules/map.js');
+var _mapJs = require('./map.js');
 
-var map = _interopRequireWildcard(_modulesMapJs);
+var map = _interopRequireWildcard(_mapJs);
 
 var _socketIoClient = require('socket.io-client');
 
@@ -61,7 +61,7 @@ module.exports = {
     init: init
 };
 
-},{"modules/globals.js":3,"modules/map.js":4,"socket.io-client":8}],3:[function(require,module,exports){
+},{"./globals.js":3,"./map.js":4,"socket.io-client":8}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -77,9 +77,9 @@ exports.GET_MAP = GET_MAP;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _modulesSupportJs = require('modules/support.js');
+var _supportJs = require('./support.js');
 
-var _modulesSupportJs2 = _interopRequireDefault(_modulesSupportJs);
+var _supportJs2 = _interopRequireDefault(_supportJs);
 
 var _leaflet = require('leaflet');
 
@@ -120,19 +120,19 @@ function addLayer(geoJsonLayer) {
     //console.dir(geoJsonLayer);
 
     var layer = _leaflet2['default'].geoJson(geoJsonLayer, {
-        style: _modulesSupportJs2['default'].css['.layer'],
+        style: _supportJs2['default'].css['.layer'],
         onEachFeature: featureInteraction
     }).addTo(map);
 
     function featureInteraction(feature, layer) {
 
         function featureSelect() {
-            layer.setStyle(_modulesSupportJs2['default'].css['.focusedobject']);
+            layer.setStyle(_supportJs2['default'].css['.focusedobject']);
             info.update(feature.properties);
         }
 
         function featureDeselect() {
-            layer.setStyle(_modulesSupportJs2['default'].css['.layer']);
+            layer.setStyle(_supportJs2['default'].css['.layer']);
             info.update();
         }
 
@@ -150,7 +150,7 @@ module.exports = {
     addLayer: addLayer
 };
 
-},{"leaflet":7,"leaflet-providers":6,"modules/support.js":5}],5:[function(require,module,exports){
+},{"./support.js":5,"leaflet":7,"leaflet-providers":6}],5:[function(require,module,exports){
 'use strict';
 
 var css = {};
@@ -188,17 +188,16 @@ module.exports = {
 
 },{}],6:[function(require,module,exports){
 (function (root, factory) {
-    if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
-        define(['leaflet'], factory);
-    } else if (typeof modules === 'object' && module.exports) {
-        // define a Common JS module that relies on 'leaflet'
-        module.exports = factory(require('leaflet'));
-    } else {
-		if (typeof this.L === 'undefined')
-			throw 'Leaflet must be loaded first!';
-		factory(this.L);
-    }
+	if (typeof define === 'function' && define.amd) {
+		// AMD. Register as an anonymous module.
+		define(['leaflet'], factory);
+	} else if (typeof modules === 'object' && module.exports) {
+		// define a Common JS module that relies on 'leaflet'
+		module.exports = factory(require('leaflet'));
+	} else {
+		// Assume Leaflet is loaded into global object L already
+		factory(L);
+	}
 }(this, function (L) {
 	'use strict';
 
@@ -824,6 +823,45 @@ module.exports = {
 						format: 'png',
 						maxZoom: 7,
 						opacity: 0.75
+					}
+				}
+			}
+		},
+		NLS: {
+			// Maps from http://maps.nls.uk/geo/explore/
+			url: '//nls-{s}.tileserver.com/{variant}/{z}/{x}/{y}.jpg',
+			options: {
+				attribution: '<a href="http://geo.nls.uk/maps/">National Library of Scotland Historic Maps</a>',
+				bounds: [[49.6, -12], [61.7, 3]],
+				minZoom: 1,
+				maxZoom: 18,
+				subdomains: '0123',
+			},
+			variants: {
+				'OS_1900': 'NLS_API',
+				'OS_1920': 'nls',
+				'OS_opendata': {
+					url: 'http://geo.nls.uk/maps/opendata/{z}/{x}/{y}.png'
+				},
+				// OS six inch, 1888 - 1913
+				'OS_6inch': 'os_6_inch_gb',
+				// OS 1:25000 1937 - 1961
+				'OS_25k': '25k',
+				'OS_7th': 'os7gb',
+				'OS_London': {
+					options: {
+						variant: 'London_1056',
+						minZoom: 9,
+						bounds: [[51.177621, -0.708618], [51.618016, 0.355682]]
+					}
+				},
+				'GSGS_Ireland': {
+					url: 'http://geo.nls.uk/maps/ireland/gsgs4136/{z}/{x}/{y}.png',
+					options: {
+						tms: true,
+						minZoom: 5,
+						maxZoom: 15,
+						bounds: [[51.371780, -10.810546], [55.422779, -5.262451]]
 					}
 				}
 			}
@@ -10094,7 +10132,7 @@ exports.connect = lookup;
 exports.Manager = require('./manager');
 exports.Socket = require('./socket');
 
-},{"./manager":10,"./socket":12,"./url":13,"debug":17,"socket.io-parser":53}],10:[function(require,module,exports){
+},{"./manager":10,"./socket":12,"./url":13,"debug":17,"socket.io-parser":51}],10:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -10599,7 +10637,7 @@ Manager.prototype.onreconnect = function(){
   this.emitAll('reconnect', attempt);
 };
 
-},{"./on":11,"./socket":12,"./url":13,"backo2":14,"component-bind":15,"component-emitter":16,"debug":17,"engine.io-client":18,"indexof":49,"object-component":50,"socket.io-parser":53}],11:[function(require,module,exports){
+},{"./on":11,"./socket":12,"./url":13,"backo2":14,"component-bind":15,"component-emitter":16,"debug":17,"engine.io-client":18,"indexof":47,"object-component":48,"socket.io-parser":51}],11:[function(require,module,exports){
 
 /**
  * Module exports.
@@ -11012,7 +11050,7 @@ Socket.prototype.disconnect = function(){
   return this;
 };
 
-},{"./on":11,"component-bind":15,"component-emitter":16,"debug":17,"has-binary":47,"socket.io-parser":53,"to-array":57}],13:[function(require,module,exports){
+},{"./on":11,"component-bind":15,"component-emitter":16,"debug":17,"has-binary":45,"socket.io-parser":51,"to-array":55}],13:[function(require,module,exports){
 (function (global){
 
 /**
@@ -11089,7 +11127,7 @@ function url(uri, loc){
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"debug":17,"parseuri":51}],14:[function(require,module,exports){
+},{"debug":17,"parseuri":49}],14:[function(require,module,exports){
 
 /**
  * Expose `Backoff`.
@@ -12231,7 +12269,7 @@ Socket.prototype.filterUpgrades = function (upgrades) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./transport":21,"./transports":22,"component-emitter":16,"debug":29,"engine.io-parser":32,"indexof":49,"parsejson":43,"parseqs":44,"parseuri":45}],21:[function(require,module,exports){
+},{"./transport":21,"./transports":22,"component-emitter":16,"debug":29,"engine.io-parser":32,"indexof":47,"parsejson":41,"parseqs":42,"parseuri":43}],21:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -13321,7 +13359,7 @@ Polling.prototype.uri = function(){
   return schema + '://' + this.hostname + port + this.path + query;
 };
 
-},{"../transport":21,"component-inherit":28,"debug":29,"engine.io-parser":32,"parseqs":44,"xmlhttprequest":27}],26:[function(require,module,exports){
+},{"../transport":21,"component-inherit":28,"debug":29,"engine.io-parser":32,"parseqs":42,"xmlhttprequest":27}],26:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -13561,7 +13599,7 @@ WS.prototype.check = function(){
   return !!WebSocket && !('__initialize' in WebSocket && this.name === WS.prototype.name);
 };
 
-},{"../transport":21,"component-inherit":28,"debug":29,"engine.io-parser":32,"parseqs":44,"ws":46}],27:[function(require,module,exports){
+},{"../transport":21,"component-inherit":28,"debug":29,"engine.io-parser":32,"parseqs":42,"ws":44}],27:[function(require,module,exports){
 // browser shim for xmlhttprequest module
 var hasCORS = require('has-cors');
 
@@ -13599,7 +13637,7 @@ module.exports = function(opts) {
   }
 }
 
-},{"has-cors":41}],28:[function(require,module,exports){
+},{"has-cors":39}],28:[function(require,module,exports){
 
 module.exports = function(a, b){
   var fn = function(){};
@@ -14666,7 +14704,7 @@ exports.decodePayloadAsBinary = function (data, binaryType, callback) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./keys":33,"after":34,"arraybuffer.slice":35,"base64-arraybuffer":36,"blob":37,"has-binary":38,"utf8":40}],33:[function(require,module,exports){
+},{"./keys":33,"after":34,"arraybuffer.slice":35,"base64-arraybuffer":36,"blob":37,"has-binary":45,"utf8":38}],33:[function(require,module,exports){
 
 /**
  * Gets the keys for an object.
@@ -14826,8 +14864,22 @@ var BlobBuilder = global.BlobBuilder
 
 var blobSupported = (function() {
   try {
-    var b = new Blob(['hi']);
-    return b.size == 2;
+    var a = new Blob(['hi']);
+    return a.size === 2;
+  } catch(e) {
+    return false;
+  }
+})();
+
+/**
+ * Check if Blob constructor supports ArrayBufferViews
+ * Fails in Safari 6, so we need to map to ArrayBuffers there.
+ */
+
+var blobSupportsArrayBufferView = blobSupported && (function() {
+  try {
+    var b = new Blob([new Uint8Array([1,2])]);
+    return b.size === 2;
   } catch(e) {
     return false;
   }
@@ -14841,19 +14893,52 @@ var blobBuilderSupported = BlobBuilder
   && BlobBuilder.prototype.append
   && BlobBuilder.prototype.getBlob;
 
+/**
+ * Helper function that maps ArrayBufferViews to ArrayBuffers
+ * Used by BlobBuilder constructor and old browsers that didn't
+ * support it in the Blob constructor.
+ */
+
+function mapArrayBufferViews(ary) {
+  for (var i = 0; i < ary.length; i++) {
+    var chunk = ary[i];
+    if (chunk.buffer instanceof ArrayBuffer) {
+      var buf = chunk.buffer;
+
+      // if this is a subarray, make a copy so we only
+      // include the subarray region from the underlying buffer
+      if (chunk.byteLength !== buf.byteLength) {
+        var copy = new Uint8Array(chunk.byteLength);
+        copy.set(new Uint8Array(buf, chunk.byteOffset, chunk.byteLength));
+        buf = copy.buffer;
+      }
+
+      ary[i] = buf;
+    }
+  }
+}
+
 function BlobBuilderConstructor(ary, options) {
   options = options || {};
 
   var bb = new BlobBuilder();
+  mapArrayBufferViews(ary);
+
   for (var i = 0; i < ary.length; i++) {
     bb.append(ary[i]);
   }
+
   return (options.type) ? bb.getBlob(options.type) : bb.getBlob();
+};
+
+function BlobConstructor(ary, options) {
+  mapArrayBufferViews(ary);
+  return new Blob(ary, options || {});
 };
 
 module.exports = (function() {
   if (blobSupported) {
-    return global.Blob;
+    return blobSupportsArrayBufferView ? global.Blob : BlobConstructor;
   } else if (blobBuilderSupported) {
     return BlobBuilderConstructor;
   } else {
@@ -14864,74 +14949,7 @@ module.exports = (function() {
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],38:[function(require,module,exports){
 (function (global){
-
-/*
- * Module requirements.
- */
-
-var isArray = require('isarray');
-
-/**
- * Module exports.
- */
-
-module.exports = hasBinary;
-
-/**
- * Checks for binary data.
- *
- * Right now only Buffer and ArrayBuffer are supported..
- *
- * @param {Object} anything
- * @api public
- */
-
-function hasBinary(data) {
-
-  function _hasBinary(obj) {
-    if (!obj) return false;
-
-    if ( (global.Buffer && global.Buffer.isBuffer(obj)) ||
-         (global.ArrayBuffer && obj instanceof ArrayBuffer) ||
-         (global.Blob && obj instanceof Blob) ||
-         (global.File && obj instanceof File)
-        ) {
-      return true;
-    }
-
-    if (isArray(obj)) {
-      for (var i = 0; i < obj.length; i++) {
-          if (_hasBinary(obj[i])) {
-              return true;
-          }
-      }
-    } else if (obj && 'object' == typeof obj) {
-      if (obj.toJSON) {
-        obj = obj.toJSON();
-      }
-
-      for (var key in obj) {
-        if (obj.hasOwnProperty(key) && _hasBinary(obj[key])) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  return _hasBinary(data);
-}
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"isarray":39}],39:[function(require,module,exports){
-module.exports = Array.isArray || function (arr) {
-  return Object.prototype.toString.call(arr) == '[object Array]';
-};
-
-},{}],40:[function(require,module,exports){
-(function (global){
-/*! http://mths.be/utf8js v2.0.0 by @mathias */
+/*! https://mths.be/utf8js v2.0.0 by @mathias */
 ;(function(root) {
 
 	// Detect free variables `exports`
@@ -14952,7 +14970,7 @@ module.exports = Array.isArray || function (arr) {
 
 	var stringFromCharCode = String.fromCharCode;
 
-	// Taken from http://mths.be/punycode
+	// Taken from https://mths.be/punycode
 	function ucs2decode(string) {
 		var output = [];
 		var counter = 0;
@@ -14979,7 +14997,7 @@ module.exports = Array.isArray || function (arr) {
 		return output;
 	}
 
-	// Taken from http://mths.be/punycode
+	// Taken from https://mths.be/punycode
 	function ucs2encode(array) {
 		var length = array.length;
 		var index = -1;
@@ -14997,6 +15015,14 @@ module.exports = Array.isArray || function (arr) {
 		return output;
 	}
 
+	function checkScalarValue(codePoint) {
+		if (codePoint >= 0xD800 && codePoint <= 0xDFFF) {
+			throw Error(
+				'Lone surrogate U+' + codePoint.toString(16).toUpperCase() +
+				' is not a scalar value'
+			);
+		}
+	}
 	/*--------------------------------------------------------------------------*/
 
 	function createByte(codePoint, shift) {
@@ -15012,6 +15038,7 @@ module.exports = Array.isArray || function (arr) {
 			symbol = stringFromCharCode(((codePoint >> 6) & 0x1F) | 0xC0);
 		}
 		else if ((codePoint & 0xFFFF0000) == 0) { // 3-byte sequence
+			checkScalarValue(codePoint);
 			symbol = stringFromCharCode(((codePoint >> 12) & 0x0F) | 0xE0);
 			symbol += createByte(codePoint, 6);
 		}
@@ -15026,11 +15053,6 @@ module.exports = Array.isArray || function (arr) {
 
 	function utf8encode(string) {
 		var codePoints = ucs2decode(string);
-
-		// console.log(JSON.stringify(codePoints.map(function(x) {
-		// 	return 'U+' + x.toString(16).toUpperCase();
-		// })));
-
 		var length = codePoints.length;
 		var index = -1;
 		var codePoint;
@@ -15101,6 +15123,7 @@ module.exports = Array.isArray || function (arr) {
 			byte3 = readContinuationByte();
 			codePoint = ((byte1 & 0x0F) << 12) | (byte2 << 6) | byte3;
 			if (codePoint >= 0x0800) {
+				checkScalarValue(codePoint);
 				return codePoint;
 			} else {
 				throw Error('Invalid continuation byte');
@@ -15172,7 +15195,7 @@ module.exports = Array.isArray || function (arr) {
 }(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],41:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -15197,7 +15220,7 @@ try {
   module.exports = false;
 }
 
-},{"global":42}],42:[function(require,module,exports){
+},{"global":40}],40:[function(require,module,exports){
 
 /**
  * Returns `this`. Execute this without a "context" (i.e. without it being
@@ -15207,7 +15230,7 @@ try {
 
 module.exports = (function () { return this; })();
 
-},{}],43:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 (function (global){
 /**
  * JSON parse.
@@ -15242,7 +15265,7 @@ module.exports = function parsejson(data) {
   }
 };
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],44:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 /**
  * Compiles a querystring
  * Returns string representation of the object
@@ -15281,7 +15304,7 @@ exports.decode = function(qs){
   return qry;
 };
 
-},{}],45:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 /**
  * Parses an URI
  *
@@ -15322,7 +15345,7 @@ module.exports = function parseuri(str) {
     return uri;
 };
 
-},{}],46:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -15367,7 +15390,7 @@ function ws(uri, protocols, opts) {
 
 if (WebSocket) ws.prototype = WebSocket.prototype;
 
-},{}],47:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 (function (global){
 
 /*
@@ -15429,9 +15452,12 @@ function hasBinary(data) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"isarray":48}],48:[function(require,module,exports){
-arguments[4][39][0].apply(exports,arguments)
-},{"dup":39}],49:[function(require,module,exports){
+},{"isarray":46}],46:[function(require,module,exports){
+module.exports = Array.isArray || function (arr) {
+  return Object.prototype.toString.call(arr) == '[object Array]';
+};
+
+},{}],47:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -15442,7 +15468,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],50:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 
 /**
  * HOP ref.
@@ -15527,7 +15553,7 @@ exports.length = function(obj){
 exports.isEmpty = function(obj){
   return 0 == exports.length(obj);
 };
-},{}],51:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 /**
  * Parses an URI
  *
@@ -15554,7 +15580,7 @@ module.exports = function parseuri(str) {
   return uri;
 };
 
-},{}],52:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 (function (global){
 /*global Blob,File*/
 
@@ -15699,7 +15725,7 @@ exports.removeBlobs = function(data, callback) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-buffer":54,"isarray":55}],53:[function(require,module,exports){
+},{"./is-buffer":52,"isarray":53}],51:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -16101,7 +16127,7 @@ function error(data){
   };
 }
 
-},{"./binary":52,"./is-buffer":54,"component-emitter":16,"debug":17,"isarray":55,"json3":56}],54:[function(require,module,exports){
+},{"./binary":50,"./is-buffer":52,"component-emitter":16,"debug":17,"isarray":53,"json3":54}],52:[function(require,module,exports){
 (function (global){
 
 module.exports = isBuf;
@@ -16118,9 +16144,9 @@ function isBuf(obj) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],55:[function(require,module,exports){
-arguments[4][39][0].apply(exports,arguments)
-},{"dup":39}],56:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
+arguments[4][46][0].apply(exports,arguments)
+},{"dup":46}],54:[function(require,module,exports){
 /*! JSON v3.2.6 | http://bestiejs.github.io/json3 | Copyright 2012-2013, Kit Cambridge | http://kit.mit-license.org */
 ;(function (window) {
   // Convenience aliases.
@@ -16983,7 +17009,7 @@ arguments[4][39][0].apply(exports,arguments)
   }
 }(this));
 
-},{}],57:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 module.exports = toArray
 
 function toArray(list, index) {

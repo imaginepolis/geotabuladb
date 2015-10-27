@@ -38,7 +38,8 @@ nodejs bootstrap.js
 # Client-Side
 For the client-side we are going to use Browserify + Babel to compile our ES6 code to ES5 and include all the required libraries in one single JS file. First we need to install the client-side required libraries:
 ```
-npm install leaflet leaflet-providers socket.io-client
+### Install Client-Side Modules
+npm install leaflet leaflet-providers socket.io-client babelify
 ```
 
 We are going to modify our index.html file to include only the Browserify generated file:
@@ -56,11 +57,9 @@ We are going to modify our index.html file to include only the Browserify genera
 # Compilation and run
 
 ```
-# Create a symlink for the client modules (to solve the 'module not found' issue...)
-cd node_modules
-ln -s ../client/modules .
 # Compile the client-side code:
-browserify client/geotabula.js -t babelify -o ./client/public/geotabula.ES5.js
+cd examples/ECMAScript6
+browserify ./client/geotabula.js -t babelify -o ./client/public/geotabula.ES5.js
 # Excecute the app
 nodejs bootstrap.js
 ```

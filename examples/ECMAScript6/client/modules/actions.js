@@ -1,5 +1,5 @@
-import * as glbs from 'modules/globals.js';
-import * as map from 'modules/map.js';
+import * as glbs from './globals.js';
+import * as map from './map.js';
 import io from 'socket.io-client';
 
 var socket = io();

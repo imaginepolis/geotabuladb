@@ -6,7 +6,8 @@ var http = require('http').Server(app);
 var express = require('express');
 
 var io = require('socket.io')(http);    // WebSockets handling
-var geo = require('geotabuladb');		// Database operation
+var Geotabuladb = require('../../index.js');	// Database operation <-- IF cloning main geotabuladb git repo
+//var Geotabula = require('geotabuladb'); 	    // Database operation <-- IF using npm install in a new project
 
 var glbs = require('./public/js/globals.js');	// With this we made the client and server shared variables available to the server
 
@@ -18,6 +19,7 @@ var clients = {}; // Dictionary to storage client's sessions
 // ------------------------------------------------------
 // Script --> Initialization
 // ------------------------------------------------------
+var geo = new Geotabuladb();
 geo.setCredentials({
 	type: 'postgis',
 	host: 'localhost',

@@ -1,4 +1,4 @@
-import support from 'modules/support.js';
+import support from './support.js';
 import L from'leaflet';
 require('leaflet-providers');
 
