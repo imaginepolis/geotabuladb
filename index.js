@@ -1027,6 +1027,100 @@ var intersectRoadAndSegments = function(queryParams, callback) {
 	}
 
 }
+
+
+var getSpatialAccuracyPhenomena1 = function(queryParams, callback) {
+	console.log("executing getSpatialAccuracyPhenomena1 ");
+
+	if (credentials.type === 'postgis') {
+
+		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
+		console.log("Query to PostGis");
+
+		var columns = [];
+
+		connection4routes = new pg.Client(connectString);
+		connection4routes.connect(function (err) {
+			if (err) {
+				return console.error('could not connect to postgres', err);
+			}
+			//console.log('connected to get the linestring');
+			var query = 'SELECT trajectory, ';
+			if (queryParams.routesProperties != undefined) {
+				columns = queryParams.routesProperties;
+				for (property in queryParams.routesProperties) {
+					query += queryParams.routesTable + '.' + queryParams.routesProperties[property] + ', ';
+				}
+			}
+			query += 'ST_AsText(' + queryParams.routesColumn + ') AS wkt FROM ' + queryParams.routesTable;
+
+			//query += ' WHERE distance>22000;';
+			//query += ' WHERE distance > 18000 AND distance <= 22000;';
+			//query += ' WHERE distance > 15000 AND distance <= 18000;';
+			//query += ' WHERE distance > 12000 AND distance <= 15000;';
+			//query += ' WHERE distance > 10000 AND distance <= 12000;';
+			//query += ' WHERE distance > 8000 AND distance <= 10000;';
+			//query += ' WHERE distance > 6000 AND distance <= 8000;';
+			//query += ' WHERE distance > 4000 AND distance <= 6000;';
+			//query += ' WHERE distance > 2000 AND distance <= 4000;';
+			query += ' WHERE distance > 0 AND distance <= 2000;';
+
+			console.log("PostGIS query");
+			console.log(query);
+			connection4routes.query(query, function (err, result) {
+				if (err) {
+					console.log('error')
+					console.log(err.stack);
+				}
+				var numOfNonAccurateRoutes = 0;
+				var counter = 0;
+				var total = result.rows.length;
+				console.log(' query with '+total +' elements');
+
+				for (each in result.rows) {
+					var Terraformer = require('terraformer');
+					var WKT = require('terraformer-wkt-parser');
+					var linestring = WKT.parse(result.rows[each].wkt);
+
+					var numOfSegments = linestring.coordinates.length - 1;
+					var found = false;
+					for (var coordinate = 0; coordinate < numOfSegments && !found; coordinate++) {
+						var segment = new Terraformer.LineString([linestring.coordinates[coordinate], linestring.coordinates[coordinate + 1]]);
+
+							var l2 = {
+								x1: segment.coordinates[0][0],
+								y1: segment.coordinates[0][1],
+								x2: segment.coordinates[1][0],
+								y2: segment.coordinates[1][1]
+							};
+							var segmentDistance = getDistance(linestring.coordinates[coordinate], linestring.coordinates[coordinate + 1]);
+							//console.log('segment '+ coordinate + ' : ' + segmentDistance);
+							if(segmentDistance > 1500){
+								console.log('segment found : '+ segmentDistance);
+								numOfNonAccurateRoutes++;
+								found =true;
+							}
+
+					}
+					//console.log(' route '+each+' / '+total);
+					if (counter > 100){
+						console.log(' route '+each+' / '+total);
+						counter =0;
+					}
+					counter++;
+				}
+				console.log('numOfNonAccurateRoutes : ' + numOfNonAccurateRoutes)
+				console.log('Done!');
+				callback(numOfNonAccurateRoutes);
+			});
+			//connection.end();
+		});
+
+	} else {
+		throw "there is no valid db type. [type] = " + credentials.type;
+	}
+}
+
 /**
  * This method join two tables in a database, at least one of the tables has to have linestrings.
  * Output: Creates a geojson with segments of line.
@@ -1692,7 +1786,7 @@ module.exports = {
 	getIdZone : getIdZone,
 	getBuffer : getBuffer,
 	getDistance : getDistance,
-	getAngle : getAngle
+	getAngle : getAngle,
+	getSpatialAccuracyPhenomena1 : getSpatialAccuracyPhenomena1
 	//testFunction : testFunction
 }
-
