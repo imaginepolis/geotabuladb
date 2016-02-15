@@ -296,8 +296,14 @@ var geoQuery = function(queryParams, callback) {
 			//console.log('connected');
 			var query = 'SELECT *, ST_AsText(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName;
 			if(queryParams.dateColumn != undefined && queryParams.dateRange != undefined){ 
-				query += ' WHERE ' + queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;			
-			}			
+				query += ' WHERE ' + queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;
+				if (queryParams.where != undefined) {
+					query += ' AND '+queryParams.where;
+				}
+			}else if (queryParams.where != undefined) {
+					query += ' WHERE ' + queryParams.where;
+			}
+							
 			if(queryParams.limit != undefined){
 				query += ' LIMIT ' + queryParams.limit;
 			}
