@@ -303,7 +303,9 @@ var geoQuery = function(queryParams, callback) {
 			}else if (queryParams.where != undefined) {
 					query += ' WHERE ' + queryParams.where;
 			}
-							
+			if(queryParams.order != undefined){
+				query += ' ORDER BY ' + queryParams.order;
+			}
 			if(queryParams.limit != undefined){
 				query += ' LIMIT ' + queryParams.limit;
 			}
