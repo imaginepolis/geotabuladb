@@ -1,6 +1,6 @@
 {
   "name": "geotabuladb",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "A library to query a geodatabase",
   "main": "index.js",
   "scripts": {
