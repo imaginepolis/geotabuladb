@@ -253,9 +253,10 @@ var geoQuery = function(queryParams, callback) {
 			columns.push('*');
 		}
 		
-	} else{
-		columns.push('*');
-	}
+	} 
+	// else{
+		// columns.push('*');
+	// }
 	//Mysql query
 	if (credentials.type === 'mysql') {
 		var query = 'SELECT *, AsWKT(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName;		
@@ -328,12 +329,12 @@ var geoQuery = function(queryParams, callback) {
 				query = 'SELECT ';
 				for (col in columns) {
 					query += columns[col];
-					if (col < columns.length - 1) {
+					// if (col < columns.length - 1) {
 						query += ', ';
-					}
+					// }
 				}
 				
-				query += ', ST_AsText(' + queryParams.geometry + ') AS wkt ';
+				query += ' ST_AsText(' + queryParams.geometry + ') AS wkt ';
 
 				query += ' FROM ' + queryParams.tableName;
 				if(queryParams.dateColumn != undefined && queryParams.dateRange != undefined){ 
