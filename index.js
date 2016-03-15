@@ -114,7 +114,7 @@ var endConnection = function(connection){
 	{
 		throw "there is no valid db type. [type] = " + credentials.type;
 	}
-}
+};
 
 /**
  * Returns an object with the attributes
@@ -160,13 +160,19 @@ var query = function(queryParams, callback) {
 				return console.error('could not connect to postgres', err);
 			}
 			//console.log('connected');
+			if (queryParams.debug)
+			{
+				console.log("Connected!");
+				console.log(connectString);
+			}
+				
 			
 			var query;
 			if (queryParams.querystring) {
 				
 				if(queryParams.querystring.indexOf(';') != -1)
 				{
-					console.log("ERROR: Possible code injection: " + queryParams.querystring)	
+					console.log("ERROR: Possible code injection: " + queryParams.querystring);
 				}
 				else
 				{
@@ -201,7 +207,7 @@ var query = function(queryParams, callback) {
 			
 			connection.query(query, function(err, result) {
 				if (err) {
-					console.log('error')
+					console.log('error');
 					console.log(err.stack);
 				}
 				connection.end();
@@ -217,7 +223,7 @@ var query = function(queryParams, callback) {
 		throw "there is no valid db type. [type] = " + credentials.type;
 	}
 
-}
+};
 
 
 /**
@@ -237,9 +243,18 @@ var geoQuery = function(queryParams, callback) {
 			"features" : []
 		};
 	var columns = [];
-	if(queryParams.properties.constructor === Array )
+	if(queryParams.properties != undefined )
 	{
-		columns = queryParams.properties;
+		if(queryParams.properties.constructor === Array){
+			for (prop in queryParams.properties){
+				columns.push(queryParams.properties[prop]);	
+			}
+		}else if(queryParams.properties == 'all' ){
+			columns.push('*');
+		}
+		
+	} else{
+		columns.push('*');
 	}
 	//Mysql query
 	if (credentials.type === 'mysql') {
@@ -294,25 +309,54 @@ var geoQuery = function(queryParams, callback) {
 				return console.error('could not connect to postgres', err);
 			}
 			//console.log('connected');
-			var query = 'SELECT *, ST_AsText(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName;
-			if(queryParams.dateColumn != undefined && queryParams.dateRange != undefined){ 
+			
+			
+			var query;
+			if (queryParams.querystring) {
+				
+				if(queryParams.querystring.indexOf(';') != -1)
+				{
+					console.log("ERROR: Possible code injection: " + queryParams.querystring);
+				}
+				else
+				{
+					query = queryParams.querystring;
+				}
+			}
+			else
+			{
+				query = 'SELECT ';
+				for (col in columns) {
+					query += columns[col];
+					if (col < columns.length - 1) {
+						query += ', ';
+					}
+				}
+				
+				query += ', ST_AsText(' + queryParams.geometry + ') AS wkt ';
+
+				query += ' FROM ' + queryParams.tableName;
+				if(queryParams.dateColumn != undefined && queryParams.dateRange != undefined){ 
 				query += ' WHERE ' + queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;
 				if (queryParams.where != undefined) {
 					query += ' AND '+queryParams.where;
 				}
-			}else if (queryParams.where != undefined) {
-					query += ' WHERE ' + queryParams.where;
+				}else if (queryParams.where != undefined) {
+						query += ' WHERE ' + queryParams.where;
+				}
+				if(queryParams.order != undefined){
+					query += ' ORDER BY ' + queryParams.order;
+				}
+				if(queryParams.limit != undefined){
+					query += ' LIMIT ' + queryParams.limit;
+				}
+				query += ';';
 			}
-			if(queryParams.order != undefined){
-				query += ' ORDER BY ' + queryParams.order;
-			}
-			if(queryParams.limit != undefined){
-				query += ' LIMIT ' + queryParams.limit;
-			}
+			
 			console.log(query);
 			connection.query(query, function(err, result) {
 				if (err) {
-					console.log('error')
+					console.log('error');
 					console.log(err.stack);
 				}
 
@@ -354,14 +398,14 @@ var geoQuery = function(queryParams, callback) {
 	} else {
 		throw "there is no valid db type. [type] = " + credentials.type;
 	}
-}
+};
 
 /**
  * Test Function 
  */
 var testFunction = function(){
 	console.log("It´s working!");
-}
+};
 
 module.exports = {
 	
@@ -372,5 +416,5 @@ module.exports = {
 	geoQuery : geoQuery,
 	query : query,
 	testFunction : testFunction
-}
+};
 
