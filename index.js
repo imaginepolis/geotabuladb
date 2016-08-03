@@ -170,7 +170,11 @@ var query = function(queryParams, callback) {
 			var query;
 			if (queryParams.querystring) {
 				
-				if(queryParams.querystring.indexOf(';') != -1)
+				if(queryParams.forced != undefined)
+				{
+					query = queryParams.querystring;
+				}
+				else if(queryParams.querystring.indexOf(';') != -1)
 				{
 					console.log("ERROR: Possible code injection: " + queryParams.querystring);
 				}
@@ -315,7 +319,11 @@ var geoQuery = function(queryParams, callback) {
 			var query;
 			if (queryParams.querystring) {
 				
-				if(queryParams.querystring.indexOf(';') != -1)
+				if(queryParams.forced != undefined)
+				{
+					query = queryParams.querystring;
+				}
+				else if(queryParams.querystring.indexOf(';') != -1)
 				{
 					console.log("ERROR: Possible code injection: " + queryParams.querystring);
 				}
@@ -353,8 +361,8 @@ var geoQuery = function(queryParams, callback) {
 				}
 				query += ';';
 			}
-			
-			console.log(query);
+			if (queryParams.debug)
+				console.log(query);
 			connection.query(query, function(err, result) {
 				if (err) {
 					console.log('error');
