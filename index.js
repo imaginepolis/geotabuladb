@@ -314,9 +314,11 @@ var geoQuery = function(queryParams, callback) {
 			});
 	} else if(credentials.type === 'postgis'){
 
-		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
+		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + ':' + credentials.port +'/' + credentials.database;
 		//console.log("Query to PostGis");
-		//console.log(connectString);
+
+		if(queryParams.debug)
+			console.log(connectString);
 		connection = new pg.Client(connectString);
 		connection.connect(function(err) {
 			if (err) {
