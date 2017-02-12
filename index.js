@@ -35,6 +35,12 @@ var setCredentials = function(pCredentials) {
 	credentials.user = pCredentials.user ? pCredentials.user : 'anonymous';
 	credentials.password = pCredentials.password ? pCredentials.password : '';
 	credentials.database = pCredentials.database ? pCredentials.database : '';
+
+
+	if(credentials.type == 'mysql')
+		credentials.port = pCredentials.port ? pCredentials.port : '3306';
+	else if(credentials.type == 'postgis')
+		credentials.port = pCredentials.port ? pCredentials.port : '5432';
 };
 /**
  * Returns a String with the credentials 
@@ -151,8 +157,11 @@ var query = function(queryParams, callback) {
 		console.error("Method NOT IMPLEMENTED for MySql DB");
 	} else if(credentials.type === 'postgis'){
 
-		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
+		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + ':' + credentials.port + '/' + credentials.database;
 		//console.log("Simple query to PostGis");
+
+		if(queryParams.debug)
+			console.log("Connect using: " + connectString);
 		
 		connection = new pg.Client(connectString);
 		connection.connect(function(err) {
