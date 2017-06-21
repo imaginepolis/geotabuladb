@@ -23,6 +23,10 @@ var credentials = {
 	'database' : ''
 };
 
+var version = process.version.substring(1,2);
+var pool = undefined;
+
+
 
 /**
  * 
@@ -35,6 +39,11 @@ var setCredentials = function(pCredentials) {
 	credentials.user = pCredentials.user ? pCredentials.user : 'anonymous';
 	credentials.password = pCredentials.password ? pCredentials.password : '';
 	credentials.database = pCredentials.database ? pCredentials.database : '';
+
+	if(version == 6)
+	{
+		pool = new pg.Pool(credentials);
+	}
 };
 /**
  * Returns a String with the credentials 
@@ -47,75 +56,139 @@ var logCredentials = function() {
 	return output;
 }; 
 
-/**
- * Connects to DB depending on the current credentials 
- */
-var connectToDb = function() {
-	var connection;
-	if (credentials.type === 'mysql') {
-		console.log("connection to mysql database.\n" + logCredentials());
-		connection = mysql.createConnection({
-			host     : credentials.host,
-			user     : credentials.user,
-			password : credentials.password,
-			database : credentials.database
-		});
-		connection.connect(function(err){
-			if(err)
-			{
-				console.error('error connecting: ' + err.stack);
-				return;
-			}
-			console.log('connected!');
-		});
-	} else if (credentials.type === 'postgis') {
-		///*
-		console.log("connection to postgis database.\n" + logCredentials());
-		var connectString = 'postgres://' 
-						+ credentials.user 
-						+ ':'
-						+ credentials.password
-						+ '@' 
-						+ credentials.host
-						+ '/'
-						+ credentials.database;
-		console.log(connectString);
-		connection = new pg.Client(connectString);
-		connection.connect(function(err){
-			if(err)
-			{
-				console.log(err.stack);
-				return console.error('could not connect to postgres', err);
 
-			}
-			console.log('connected');
-		});
-		//*/
+var createQuery = function(queryParams)
+{
+	var query;
+	if (queryParams.querystring) {
+		
+		if(queryParams.forced != undefined)
+		{
+			query = queryParams.querystring;
+		}
+		else if(queryParams.querystring.indexOf(';') != -1)
+		{
+			console.log("ERROR: Possible code injection: " + queryParams.querystring);
+		}
+		else
+		{
+			query = queryParams.querystring;
+		}
+		
 	} else {
-		throw "there is no valid db type. [type] = " + credentials.type;
-	}
-	
-	return connection;
-}; 
-/**
- * End current connection 
- */
-var endConnection = function(connection){
-	if (credentials.type === 'mysql') {
-		connection.end(function(err){
-				
-		});
-	}
-	else if(credentials.type == 'postgis')
-	{
-		connection.end();
+		query = 'SELECT ';
+		for (col in columns) {
+			query += columns[col];
+			if (col < columns.length - 1) {
+				query += ', ';
+			}
+		}
+
+		query += ' FROM ' + queryParams.tableName;
+
+		if (queryParams.where != undefined) {
+			query += ' WHERE ' + queryParams.where;
+		}
+		if (queryParams.limit != undefined) {
+			query += ' LIMIT ' + queryParams.limit;
+		}
+		if (queryParams.groupby != undefined) {
+			query += ' GROUP BY ' + queryParams.groupby;
+		}
+		query += ';';
+		
+	}	
+	if (queryParams.debug)
+		console.log(query);
+	return query;
+}
+
+var createGeoQuery = function(columns, queryParams)
+{
+	var query;
+	if (queryParams.querystring) {
+					
+		if(queryParams.forced != undefined)
+		{
+			query = queryParams.querystring;
+		}
+		else if(queryParams.querystring.indexOf(';') != -1)
+		{
+			console.log("ERROR: Possible code injection: " + queryParams.querystring);
+		}
+		else
+		{
+			query = queryParams.querystring;
+		}
 	}
 	else
 	{
-		throw "there is no valid db type. [type] = " + credentials.type;
-	}
-};
+		query = 'SELECT ';
+		for (col in columns) {
+			query += columns[col];
+			// if (col < columns.length - 1) {
+				query += ', ';
+			// }
+		}
+		
+		query += ' ST_AsText(' + queryParams.geometry + ') AS wkt ';
 
+		query += ' FROM ' + queryParams.tableName;
+		if(queryParams.dateColumn != undefined && queryParams.dateRange != undefined){ 
+		query += ' WHERE ' + queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;
+		if (queryParams.where != undefined) {
+			query += ' AND '+queryParams.where;
+		}
+		}else if (queryParams.where != undefined) {
+				query += ' WHERE ' + queryParams.where;
+		}
+		if(queryParams.order != undefined){
+			query += ' ORDER BY ' + queryParams.order;
+		}
+		if(queryParams.limit != undefined){
+			query += ' LIMIT ' + queryParams.limit;
+		}
+		query += ';';
+	}
+	if (queryParams.debug)
+		console.log(query);
+	return query;
+}
+
+var createJson = function(queryParams, columns, result)
+{
+	var geojson = {
+			"type" : "FeatureCollection",
+			"features" : []
+		};
+	if(queryParams.properties == 'all')
+	{
+		for(field in result.fields){
+			var name = result.fields[field].name;
+			if (name != queryParams.geometry && name != 'wkt')
+				columns.push(result.fields[field].name);
+		}
+	}
+
+	for (each in result.rows) {
+		var properties = {};
+		for(i in columns){
+			var col = columns[i];
+			properties[col] = result.rows[each][col];
+		}
+		var Terraformer = require('terraformer');
+		var WKT = require('terraformer-wkt-parser');			
+		var geometry = WKT.parse(result.rows[each].wkt);
+		var feature = {
+			"type" : "Feature",
+			"geometry" : geometry,
+			"properties" : properties
+		};
+		geojson.features.push(feature);
+	}
+
+	return geojson;
+}
 /**
  * Returns an object with the attributes
  * @param {Object} object with query parameters:<br>
@@ -150,78 +223,51 @@ var query = function(queryParams, callback) {
 		//TODO implemetn this fucntion for mysql db
 		console.error("Method NOT IMPLEMENTED for MySql DB");
 	} else if(credentials.type === 'postgis'){
-
-		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
-		//console.log("Simple query to PostGis");
-		
-		connection = new pg.Client(connectString);
-		connection.connect(function(err) {
-			if (err) {
-				return console.error('could not connect to postgres', err);
-			}
-			//console.log('connected');
-			if (queryParams.debug)
-			{
-				console.log("Connected!");
-				console.log(connectString);
-			}
-				
-			
-			var query;
-			if (queryParams.querystring) {
-				
-				if(queryParams.forced != undefined)
-				{
-					query = queryParams.querystring;
-				}
-				else if(queryParams.querystring.indexOf(';') != -1)
-				{
-					console.log("ERROR: Possible code injection: " + queryParams.querystring);
-				}
-				else
-				{
-					query = queryParams.querystring;
-				}
-				
-			} else {
-				query = 'SELECT ';
-				for (col in columns) {
-					query += columns[col];
-					if (col < columns.length - 1) {
-						query += ', ';
-					}
-				}
-
-				query += ' FROM ' + queryParams.tableName;
-
-				if (queryParams.where != undefined) {
-					query += ' WHERE ' + queryParams.where;
-				}
-				if (queryParams.limit != undefined) {
-					query += ' LIMIT ' + queryParams.limit;
-				}
-				if (queryParams.groupby != undefined) {
-					query += ' GROUP BY ' + queryParams.groupby;
-				}
-				query += ';';
-				
-			}	
-			if (queryParams.debug)
-				console.log(query);
-			
-			connection.query(query, function(err, result) {
+		if(version == 5)
+		{
+			var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
+			connection = new pg.Client(connectString);
+			connection.connect(function(err) {
 				if (err) {
-					console.log('error');
-					console.log(err.stack);
+					return console.error('could not connect to postgres', err);
 				}
-				connection.end();
-				callback(result.rows);
+				//console.log('connected');
+				if (queryParams.debug)
+				{
+					console.log("Connected!");
+					console.log(connectString);
+				}
+					
+				var query = createQuery(queryParams);
+				
+				
+				connection.query(query, function(err, result) {
+					if (err) {
+						console.log('error');
+						console.log(err.stack);
+					}
+					connection.end();
+					callback(result.rows);
+				});
+				connection.on('end', function(){
+					if(queryParams.debug)		
+						console.log("Connection ended");
+				});				
 			});
-			connection.on('end', function(){
-				if(queryParams.debug)		
-					console.log("Connection ended");
-			});				
-		});
+		}
+		else if (version == 6)
+		{
+			var query = createQuery(queryParams);
+
+			pool.query(query, [], function(err, result){
+				if (err) {
+						console.log('error');
+						console.log(err.stack);
+					}
+				callback(result.rows);
+			})
+		}
+		
 		
 	} else {
 		throw "there is no valid db type. [type] = " + credentials.type;
@@ -242,10 +288,7 @@ var query = function(queryParams, callback) {
  */
 var geoQuery = function(queryParams, callback) {
 	var connection;
-	var geojson = {
-			"type" : "FeatureCollection",
-			"features" : []
-		};
+	
 	var columns = [];
 	if(queryParams.properties != undefined )
 	{
@@ -263,146 +306,86 @@ var geoQuery = function(queryParams, callback) {
 	// }
 	//Mysql query
 	if (credentials.type === 'mysql') {
-		var query = 'SELECT *, AsWKT(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName;		
-		if(queryParams.dateColumn != undefined && queryParams.dateRange != undefined){ 
-			query += ' WHERE ' + queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;			
-		}			
-		if(queryParams.limit != undefined){
-			query += ' LIMIT ' + queryParams.limit;
-		}
-		var queryCon = connection.query(query);
-		queryCon
-			.on('result', function(row){
-				var geometry = wkt.parse(row.wkt);
-				var properties = {};
-				for(i in columns)
-				{
-					var col = columns[i];
-					properties[col] = row[col];
-				}
-				var feature = {
-					"type" : "Feature",
-					"geometry" : geometry,
-					"properties" : properties
-				};
-				geojson.features.push(feature);
-			})
-			.on('fields', function(fields){
-				if(queryParams.properties == 'all')
-				{
-					for (i in fields) {
-						var name = fields[i].name;
-						if (name != queryParams.geometry && name != 'wkt')
-							columns.push(fields[i].name);
-					}
-				}
-				//console.log(columns);
-			})
-			.on('end', function(){
-				//console.log('se acabo...');
-				//console.log(geojson);
-				callback(geojson);
-			});
+		// var query = 'SELECT *, AsWKT(' + queryParams.geometry + ') AS wkt FROM ' + queryParams.tableName;		
+		// if(queryParams.dateColumn != undefined && queryParams.dateRange != undefined){ 
+		// 	query += ' WHERE ' + queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;			
+		// }			
+		// if(queryParams.limit != undefined){
+		// 	query += ' LIMIT ' + queryParams.limit;
+		// }
+		// var queryCon = connection.query(query);
+		// queryCon
+		// 	.on('result', function(row){
+		// 		var geometry = wkt.parse(row.wkt);
+		// 		var properties = {};
+		// 		for(i in columns)
+		// 		{
+		// 			var col = columns[i];
+		// 			properties[col] = row[col];
+		// 		}
+		// 		var feature = {
+		// 			"type" : "Feature",
+		// 			"geometry" : geometry,
+		// 			"properties" : properties
+		// 		};
+		// 		geojson.features.push(feature);
+		// 	})
+		// 	.on('fields', function(fields){
+		// 		if(queryParams.properties == 'all')
+		// 		{
+		// 			for (i in fields) {
+		// 				var name = fields[i].name;
+		// 				if (name != queryParams.geometry && name != 'wkt')
+		// 					columns.push(fields[i].name);
+		// 			}
+		// 		}
+		// 		//console.log(columns);
+		// 	})
+		// 	.on('end', function(){
+		// 		//console.log('se acabo...');
+		// 		//console.log(geojson);
+		// 		callback(geojson);
+		// 	});
 	} else if(credentials.type === 'postgis'){
 
-		var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
-		//console.log("Query to PostGis");
-		//console.log(connectString);
-		connection = new pg.Client(connectString);
-		connection.connect(function(err) {
-			if (err) {
-				return console.error('could not connect to postgres', err);
-			}
-			//console.log('connected');
-			
-			
-			var query;
-			if (queryParams.querystring) {
-				
-				if(queryParams.forced != undefined)
-				{
-					query = queryParams.querystring;
-				}
-				else if(queryParams.querystring.indexOf(';') != -1)
-				{
-					console.log("ERROR: Possible code injection: " + queryParams.querystring);
-				}
-				else
-				{
-					query = queryParams.querystring;
-				}
-			}
-			else
-			{
-				query = 'SELECT ';
-				for (col in columns) {
-					query += columns[col];
-					// if (col < columns.length - 1) {
-						query += ', ';
-					// }
+		if(version == 5)
+		{
+			var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
+			connection = new pg.Client(connectString);
+			connection.connect(function(err) {
+				if (err) {
+					return console.error('could not connect to postgres', err);
 				}
 				
-				query += ' ST_AsText(' + queryParams.geometry + ') AS wkt ';
+				var query = createGeoQuery(columns, queryParams);
+				
+				connection.query(query, function(err, result) {
+					if (err) {
+						console.log('error');
+						console.log(err.stack);
+					}
 
-				query += ' FROM ' + queryParams.tableName;
-				if(queryParams.dateColumn != undefined && queryParams.dateRange != undefined){ 
-				query += ' WHERE ' + queryParams.dateColumn + ' BETWEEN ' + queryParams.dateRange;
-				if (queryParams.where != undefined) {
-					query += ' AND '+queryParams.where;
-				}
-				}else if (queryParams.where != undefined) {
-						query += ' WHERE ' + queryParams.where;
-				}
-				if(queryParams.order != undefined){
-					query += ' ORDER BY ' + queryParams.order;
-				}
-				if(queryParams.limit != undefined){
-					query += ' LIMIT ' + queryParams.limit;
-				}
-				query += ';';
-			}
-			if (queryParams.debug)
-				console.log(query);
-			connection.query(query, function(err, result) {
+					var geojson = createJson(queryParams, columns, result);
+					callback(geojson);
+					connection.end();
+				});			
+			});
+		}
+		else if(version == 6)
+		{
+			var query = createGeoQuery(columns, queryParams);
+			pool.query(query, [], function(err, result)
+			{
 				if (err) {
 					console.log('error');
 					console.log(err.stack);
 				}
 
-				if(queryParams.properties == 'all')
-				{
-					for(field in result.fields){
-						var name = result.fields[field].name;
-						if (name != queryParams.geometry && name != 'wkt')
-							columns.push(result.fields[field].name);
-					}
-				}
-
-				for (each in result.rows) {
-					var properties = {};
-					for(i in columns){
-						var col = columns[i];
-						properties[col] = result.rows[each][col];
-					}
-					var Terraformer = require('terraformer');
-					var WKT = require('terraformer-wkt-parser');			
-					var geometry = WKT.parse(result.rows[each].wkt);
-					var feature = {
-						"type" : "Feature",
-						"geometry" : geometry,
-						"properties" : properties
-					};
-					geojson.features.push(feature);
-				}
+				var geojson = createJson(queryParams, columns, result);
 				callback(geojson);
-				//console.log(data);
-				//callback(data);
-				connection.end();
-			});
-			// connection.on('end', function(){
-				// client.end();
-			// });				
-		});
+			})
+		}
+		
 		
 	} else {
 		throw "there is no valid db type. [type] = " + credentials.type;
@@ -421,8 +404,6 @@ module.exports = {
 	
 	setCredentials : setCredentials,
 	logCredentials : logCredentials,
-	connectToDb : connectToDb,
-	//endConnection : endConnection,
 	geoQuery : geoQuery,
 	query : query,
 	testFunction : testFunction
