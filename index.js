@@ -40,7 +40,7 @@ var setCredentials = function(pCredentials) {
 	credentials.password = pCredentials.password ? pCredentials.password : '';
 	credentials.database = pCredentials.database ? pCredentials.database : '';
 
-	if(version == 6)
+	if(version >= 6 && pool != undefined)
 	{
 		pool = new pg.Pool(credentials);
 	}
