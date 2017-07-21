@@ -42,6 +42,8 @@ var setCredentials = function(pCredentials) {
 
 	if(version >= 6 && pool != undefined)
 	{
+		console.log(version);
+		console.log(credentials);
 		pool = new pg.Pool(credentials);
 	}
 };
@@ -223,7 +225,7 @@ var query = function(queryParams, callback) {
 		//TODO implemetn this fucntion for mysql db
 		console.error("Method NOT IMPLEMENTED for MySql DB");
 	} else if(credentials.type === 'postgis'){
-		if(version == 5)
+		if(version < 6)
 		{
 			var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
 			connection = new pg.Client(connectString);
@@ -255,7 +257,7 @@ var query = function(queryParams, callback) {
 				});				
 			});
 		}
-		else if (version == 6)
+		else if (version >= 6)
 		{
 			var query = createQuery(queryParams);
 
@@ -348,7 +350,7 @@ var geoQuery = function(queryParams, callback) {
 		// 	});
 	} else if(credentials.type === 'postgis'){
 
-		if(version == 5)
+		if(version < 6)
 		{
 			var connectString = 'postgres://' + credentials.user + ':' + credentials.password + '@' + credentials.host + '/' + credentials.database;
 			connection = new pg.Client(connectString);
@@ -371,7 +373,7 @@ var geoQuery = function(queryParams, callback) {
 				});			
 			});
 		}
-		else if(version == 6)
+		else if(version >= 6)
 		{
 			var query = createGeoQuery(columns, queryParams);
 			pool.query(query, [], function(err, result)
