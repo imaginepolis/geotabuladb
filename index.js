@@ -179,7 +179,9 @@ var createJson = function(queryParams, columns, result)
 			properties[col] = result.rows[each][col];
 		}
 		var Terraformer = require('terraformer');
-		var WKT = require('terraformer-wkt-parser');			
+		var WKT = require('terraformer-wkt-parser');	
+		if(result.rows[each].wkt == null || result.rows[each].wkt == undefined)
+			continue;		
 		var geometry = WKT.parse(result.rows[each].wkt);
 		var feature = {
 			"type" : "Feature",
