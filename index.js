@@ -40,10 +40,13 @@ var setCredentials = function(pCredentials) {
 	credentials.password = pCredentials.password ? pCredentials.password : '';
 	credentials.database = pCredentials.database ? pCredentials.database : '';
 
-	if(version >= 6 && pool != undefined)
+	if(pCredentials.debug == true)
 	{
-		console.log(version);
-		console.log(credentials);
+		console.log("Node Version: " + version);
+		console.log("Pool undefined?: " + (pool == undefined));
+	}
+	if(version >= 6 && pool == undefined)
+	{
 		pool = new pg.Pool(credentials);
 	}
 };
