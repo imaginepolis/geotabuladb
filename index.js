@@ -252,9 +252,14 @@ var query = function(queryParams, callback) {
 					if (err) {
 						console.log('error');
 						console.log(err.stack);
+						callback({error : err})
+					}
+					else
+					{
+						callback(result.rows);
 					}
 					connection.end();
-					callback(result.rows);
+					
 				});
 				connection.on('end', function(){
 					if(queryParams.debug)		
@@ -267,11 +272,17 @@ var query = function(queryParams, callback) {
 			var query = createQuery(queryParams);
 
 			pool.query(query, [], function(err, result){
-				if (err) {
-						console.log('error');
-						console.log(err.stack);
-					}
-				callback(result.rows);
+				if (err) 
+				{
+					console.log('error');
+					console.log(err.stack);
+					callback({error : err});
+				}
+				else
+				{
+					callback(result.rows);	
+				}
+				
 			})
 		}
 		
@@ -370,11 +381,14 @@ var geoQuery = function(queryParams, callback) {
 					if (err) {
 						console.log('error');
 						console.log(err.stack);
+						callback({error : err});
 					}
-
-					var geojson = createJson(queryParams, columns, result);
-					callback(geojson);
-					connection.end();
+					else
+					{
+						var geojson = createJson(queryParams, columns, result);
+						callback(geojson);
+						connection.end();
+					}
 				});			
 			});
 		}
@@ -383,13 +397,18 @@ var geoQuery = function(queryParams, callback) {
 			var query = createGeoQuery(columns, queryParams);
 			pool.query(query, [], function(err, result)
 			{
-				if (err) {
+				if (err) 
+				{
 					console.log('error');
 					console.log(err.stack);
+					callback({error : err});
 				}
-
-				var geojson = createJson(queryParams, columns, result);
-				callback(geojson);
+				else
+				{
+					var geojson = createJson(queryParams, columns, result);
+					callback(geojson);	
+				}
+				
 			})
 		}
 		
